@@ -35,8 +35,5 @@ class ZoomVideoSdkProvider extends StatelessWidget {
 void main() {
   runApp(MaterialApp(
     home: ZoomVideoSdkProvider(),
-    routes: {
-      "Call": (context) => const CallScreen(),
-    },
   ));
 }

@@ -12,9 +12,6 @@ import '../util/progress_dialog.dart';
 
 
 class Network {
-
-
-
   Future<LoginResponse> login(DataModel dataModel) async {
     DataModel dataModel1 = await DataModel.create();
     dataModel.os = dataModel1.os;
@@ -63,7 +60,6 @@ class Network {
         requestType: '400',
         dataModel: consultationRequestModel);
     final url = '${Constants.endPoint}consultation';
-    print(requestModel.toJson());
     final response = await http.post(Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -71,25 +67,24 @@ class Network {
         body: json.encode(requestModel.toJson()));
     ProgressDialog.hide(context);
 
-    print(response.body);
     if (response.statusCode == 200) {
       ConsultationResponse consultationResponse =
       ConsultationResponse.fromJson(json.decode(response.body));
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
-          !(consultationResponse.data?.tokenId?.isEmpty ?? false)) {
+          !(consultationResponse.data?.tokenId?.isEmpty ?? false) && !(consultationResponse.data?.patientName?.isEmpty ?? false)) {
         final result = await Navigator.pushNamed(context, "Call",
             arguments: CallArguments(consultationResponse.data!.sessionId!,
                 consultationResponse.data!.tokenId!, '', '', '40', '', true));
         if (result != null) {
-          return "Success: Received -> $result";
+          return "Consultation completed";
         } else {
           return "Cancelled or No Data Returned";
         }
       } else {
-        return "Cancelled or No Data Returned";
+        return "Consultation is not available with the appointment ID";
       }
     } else {
-      return "Cancelled or No Data Returned";
+      return "Unable to connect to API. Please try again after sometime";
     }
   }
 }

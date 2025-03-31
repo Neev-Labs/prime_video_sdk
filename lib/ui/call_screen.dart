@@ -11,7 +11,7 @@ import 'package:flutter_zoom_videosdk/native/zoom_videosdk.dart';
 import 'package:flutter_zoom_videosdk/native/zoom_videosdk_event_listener.dart';
 import 'package:flutter_zoom_videosdk/native/zoom_videosdk_user.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:flutter_zoom_videosdk/native/zoom_videosdk_share_action.dart';
 import '../components/video_view.dart';
 import '../model/models.dart';
 
@@ -112,98 +112,74 @@ class _CallScreenState extends State<CallScreen> {
     }, []);
 
     useEffect(() {
-      eventListener.addListener(EventType.onSessionJoin, (sessionUser) async {
+      final sessionJoinListener =
+      eventListener.addListener(EventType.onSessionJoin, (data) async {
+        data = data as Map;
         isInSession.value = true;
         zoom.session
             .getSessionName()
             .then((value) => sessionName.value = value!);
         sessionPassword.value = await zoom.session.getSessionPassword();
+        debugPrint(
+            "sessionPhonePasscode: ${await zoom.session.getSessionPhonePasscode()}");
         ZoomVideoSdkUser mySelf =
-            ZoomVideoSdkUser.fromJson(jsonDecode(sessionUser.toString()));
-        List<ZoomVideoSdkUser>? remoteUsers = [];
-        // await zoom.session.getRemoteUsers();
+        ZoomVideoSdkUser.fromJson(jsonDecode(data['sessionUser']));
+        List<ZoomVideoSdkUser>? remoteUsers =
+        await zoom.session.getRemoteUsers();
+
+        statusText.value = 'Waiting for doctor';
+        for (ZoomVideoSdkUser user in remoteUsers ?? []) {
+          if (user.userName.contains('Patient')) {
+          } else {
+            fullScreenUser.value = user;
+          }
+        }
         var muted = await mySelf.audioStatus?.isMuted();
         var videoOn = await mySelf.videoStatus?.isOn();
         var speakerOn = await zoom.audioHelper.getSpeakerStatus();
-        remoteUsers.insert(0, mySelf);
+        List<ZoomVideoSdkUser>? remoteUser = [];
+        remoteUser.insert(0, mySelf);
         isMuted.value = muted!;
         isSpeakerOn.value = speakerOn;
         isVideoOn.value = videoOn!;
-        users.value = remoteUsers;
+        users.value = remoteUser;
         isReceiveSpokenLanguageContentEnabled.value = await zoom
             .liveTranscriptionHelper
             .isReceiveSpokenLanguageContentEnabled();
       });
+
+      final sessionLeaveListener =
       eventListener.addListener(EventType.onSessionLeave, (data) async {
         data = data as Map;
         debugPrint("onSessionLeave: ${data['reason']}");
         isInSession.value = false;
         users.value = <ZoomVideoSdkUser>[];
         fullScreenUser.value = null;
-        Navigator.popAndPushNamed(
-          context,
-          "Join",
-          arguments: JoinArguments(
-              args.isJoin,
-              sessionName.value,
-              sessionPassword.value,
-              args.displayName,
-              args.sessionIdleTimeoutMins,
-              args.role),
+        Navigator.of(context).pop(true);
+      });
+
+      final sessionNeedPasswordListener = eventListener
+          .addListener(EventType.onSessionNeedPassword, (data) async {
+        showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Session Need Password'),
+            content: const Text('Password is required'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () async => {
+                  Navigator.of(context).pop(true),
+                  await zoom.leaveSession(false),
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       });
 
-      eventListener.addListener(EventType.onSessionNeedPassword, (data) async {
-        showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Session Need Password'),
-            content: const Text('Password is required'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async => {
-                  Navigator.popAndPushNamed(context, 'Join',
-                      arguments: JoinArguments(
-                          args.isJoin,
-                          args.sessionName,
-                          "",
-                          args.displayName,
-                          args.sessionIdleTimeoutMins,
-                          args.role)),
-                  await zoom.leaveSession(false),
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      });
-      eventListener.addListener(EventType.onSessionNeedPassword, (data) async {
-        showDialog<String>(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Session Need Password'),
-            content: const Text('Password is required'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async => {
-                  Navigator.popAndPushNamed(context, 'Join',
-                      arguments: JoinArguments(
-                          args.isJoin,
-                          args.sessionName,
-                          "",
-                          args.displayName,
-                          args.sessionIdleTimeoutMins,
-                          args.role)),
-                  await zoom.leaveSession(false),
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      });
-      eventListener.addListener(EventType.onSessionPasswordWrong, (data) async {
+      final sessionPasswordWrongListener = eventListener
+          .addListener(EventType.onSessionPasswordWrong, (data) async {
         showDialog<String>(
           context: context,
           builder: (BuildContext context) => AlertDialog(
@@ -212,14 +188,7 @@ class _CallScreenState extends State<CallScreen> {
             actions: <Widget>[
               TextButton(
                 onPressed: () async => {
-                  Navigator.popAndPushNamed(context, 'Join',
-                      arguments: JoinArguments(
-                          args.isJoin,
-                          args.sessionName,
-                          "",
-                          args.displayName,
-                          args.sessionIdleTimeoutMins,
-                          args.role)),
+                  Navigator.of(context).pop(true),
                   await zoom.leaveSession(false),
                 },
                 child: const Text('OK'),
@@ -229,8 +198,8 @@ class _CallScreenState extends State<CallScreen> {
         );
       });
 
-      eventListener.addListener(EventType.onUserVideoStatusChanged,
-          (data) async {
+      final userVideoStatusChangedListener = eventListener
+          .addListener(EventType.onUserVideoStatusChanged, (data) async {
         data = data as Map;
         ZoomVideoSdkUser? mySelf = await zoom.session.getMySelf();
         var userListJson = jsonDecode(data['changedUsers']) as List;
@@ -246,8 +215,9 @@ class _CallScreenState extends State<CallScreen> {
         }
         videoStatusFlag.value = !videoStatusFlag.value;
       });
-      eventListener.addListener(EventType.onUserAudioStatusChanged,
-          (data) async {
+
+      final userAudioStatusChangedListener = eventListener
+          .addListener(EventType.onUserAudioStatusChanged, (data) async {
         data = data as Map;
         ZoomVideoSdkUser? mySelf = await zoom.session.getMySelf();
         var userListJson = jsonDecode(data['changedUsers']) as List;
@@ -265,26 +235,30 @@ class _CallScreenState extends State<CallScreen> {
         }
         audioStatusFlag.value = !audioStatusFlag.value;
       });
-      eventListener.addListener(EventType.onUserShareStatusChanged,
-          (data) async {
+
+      final userShareStatusChangeListener = eventListener
+          .addListener(EventType.onUserShareStatusChanged, (data) async {
         data = data as Map;
         ZoomVideoSdkUser? mySelf = await zoom.session.getMySelf();
         ZoomVideoSdkUser shareUser =
-            ZoomVideoSdkUser.fromJson(jsonDecode(data['user'].toString()));
+        ZoomVideoSdkUser.fromJson(jsonDecode(data['user'].toString()));
+        ZoomVideoSdkShareAction? shareAction =
+        ZoomVideoSdkShareAction.fromJson(jsonDecode(data['shareAction']));
 
-        if (data['status'] == ShareStatus.Start ||
-            data['status'] == ShareStatus.Resume) {
+        if (shareAction.shareStatus == ShareStatus.Start ||
+            shareAction.shareStatus == ShareStatus.Resume) {
           sharingUser.value = shareUser;
           fullScreenUser.value = shareUser;
           isSharing.value = (shareUser.userId == mySelf?.userId);
         } else {
           sharingUser.value = null;
           isSharing.value = false;
-          fullScreenUser.value = shareUser;
+          fullScreenUser.value = mySelf;
         }
         userShareStatusFlag.value = !userShareStatusFlag.value;
       });
 
+      final userJoinListener =
       eventListener.addListener(EventType.onUserJoin, (data) async {
         if (!isMounted()) return;
         data = data as Map;
@@ -293,18 +267,20 @@ class _CallScreenState extends State<CallScreen> {
         List<ZoomVideoSdkUser> remoteUserList = userListJson
             .map((userJson) => ZoomVideoSdkUser.fromJson(userJson))
             .toList();
-        for (var user in remoteUserList) {
-          if (!user.userName.contains('Patient')) {
+        print(remoteUserList);
+        for (ZoomVideoSdkUser user in remoteUserList) {
+          if (user.userName.contains('Patient')) {
+            statusText.value = 'Waiting for doctor';
+          } else {
             fullScreenUser.value = user;
           }
         }
-        List<ZoomVideoSdkUser> remoteUserLists = [mySelf!];
+        List<ZoomVideoSdkUser> remoteUserLists = [];
+        remoteUserLists.insert(0, mySelf!);
         users.value = remoteUserLists;
       });
-
       void onLeaveSession(bool isEndSession) async {
         await zoom.leaveSession(isEndSession);
-        Navigator.of(context).pop(true);
       }
 
       void leaveConsultation() {
@@ -334,37 +310,43 @@ class _CallScreenState extends State<CallScreen> {
         );
       }
 
+      final userLeaveListener =
       eventListener.addListener(EventType.onUserLeave, (data) async {
         if (!isMounted()) return;
         ZoomVideoSdkUser? mySelf = await zoom.session.getMySelf();
         data = data as Map;
+        List<ZoomVideoSdkUser>? remoteUserList =
+        await zoom.session.getRemoteUsers();
         var leftUserListJson = jsonDecode(data['leftUsers']) as List;
         List<ZoomVideoSdkUser> leftUserLis = leftUserListJson
             .map((userJson) => ZoomVideoSdkUser.fromJson(userJson))
             .toList();
-        if (fullScreenUser.value != null) {
-          for (var user in leftUserLis) {
-            {
-              if (!user.userName.contains('Patient')) {
-                fullScreenUser.value = null;
-                statusText.value =
-                    'The doctor has stepped away/left this session';
-                showLeftDialog(context);
-              }
-            }
+        for (ZoomVideoSdkUser user in remoteUserList ?? []) {
+          if (user.userName.contains('Patient')) {
+            statusText.value = 'Doctor left from consultation';
+            showLeftDialog(context);
+          } else {
+            fullScreenUser.value = null;
           }
-        } else {
-          fullScreenUser.value = null;
         }
-        List<ZoomVideoSdkUser> remoteUserLists = [mySelf!];
+
+        List<ZoomVideoSdkUser> remoteUserLists = [];
+        remoteUserLists.insert(0, mySelf!);
         users.value = remoteUserLists;
       });
 
-      eventListener.addListener(EventType.onRequireSystemPermission,
-          (data) async {
+      final commandReceived =
+      eventListener.addListener(EventType.onCommandReceived, (data) async {
+        data = data as Map;
+        debugPrint(
+            "sender: ${ZoomVideoSdkUser.fromJson(jsonDecode(data['sender']))}, command: ${data['command']}");
+      });
+
+      final requireSystemPermission = eventListener
+          .addListener(EventType.onRequireSystemPermission, (data) async {
         data = data as Map;
         ZoomVideoSdkUser? changedUser =
-            ZoomVideoSdkUser.fromJson(jsonDecode(data['changedUser']));
+        ZoomVideoSdkUser.fromJson(jsonDecode(data['changedUser']));
         var permissionType = data['permissionType'];
         switch (permissionType) {
           case SystemPermissionType.Camera:
@@ -402,11 +384,11 @@ class _CallScreenState extends State<CallScreen> {
         }
       });
 
-      eventListener.addListener(EventType.onUserVideoNetworkStatusChanged,
-          (data) async {
+      final networkStatusChangeListener = eventListener
+          .addListener(EventType.onUserVideoNetworkStatusChanged, (data) async {
         data = data as Map;
         ZoomVideoSdkUser? networkUser =
-            ZoomVideoSdkUser.fromJson(jsonDecode(data['user']));
+        ZoomVideoSdkUser.fromJson(jsonDecode(data['user']));
 
         if (data['status'] == NetworkStatus.Bad) {
           debugPrint(
@@ -414,6 +396,7 @@ class _CallScreenState extends State<CallScreen> {
         }
       });
 
+      final eventErrorListener =
       eventListener.addListener(EventType.onError, (data) async {
         data = data as Map;
         String errorType = data['errorType'];
@@ -432,40 +415,45 @@ class _CallScreenState extends State<CallScreen> {
         );
         if (errorType == Errors.SessionJoinFailed ||
             errorType == Errors.SessionDisconnecting) {
-          Timer(const Duration(milliseconds: 1000), () {
-            Navigator.popAndPushNamed(
-              context,
-              "Join",
-              arguments: JoinArguments(
-                  args.isJoin,
-                  sessionName.value,
-                  sessionPassword.value,
-                  args.displayName,
-                  args.sessionIdleTimeoutMins,
-                  args.role),
-            );
-          });
+          Timer(
+              const Duration(milliseconds: 1000),
+                  () {
+                Navigator.of(context).pop(true);
+              });
         }
       });
 
-      eventListener.addListener(EventType.onCameraControlRequestResult, (data) async {
+      final userRecordingConsentListener = eventListener
+          .addListener(EventType.onUserRecordingConsent, (data) async {
         data = data as Map;
-        bool approved = data['approved'];
-        debugPrint('onCameraControlRequestResult: approved= $approved');
-      });
-      eventListener.addListener(EventType.onCalloutJoinSuccess, (data) async {
-        data = data as Map;
-        String phoneNumber = data['phoneNumber'];
         ZoomVideoSdkUser? user =
         ZoomVideoSdkUser.fromJson(jsonDecode(data['user']));
-        debugPrint(
-            'onCalloutJoinSuccess: phoneNumber= $phoneNumber, user= ${user.userName}');
+        debugPrint('userRecordingConsentListener: user= ${user.userName}');
       });
 
-
+      final callCRCDeviceStatusListener = eventListener
+          .addListener(EventType.onCallCRCDeviceStatusChanged, (data) async {
+        data = data as Map;
+        debugPrint('onCallCRCDeviceStatusChanged: status = ${data['status']}');
+      });
 
       return () => {
-          };
+        sessionJoinListener.cancel(),
+        sessionLeaveListener.cancel(),
+        sessionPasswordWrongListener.cancel(),
+        sessionNeedPasswordListener.cancel(),
+        userVideoStatusChangedListener.cancel(),
+        userAudioStatusChangedListener.cancel(),
+        userJoinListener.cancel(),
+        userLeaveListener.cancel(),
+        userShareStatusChangeListener.cancel(),
+        eventErrorListener.cancel(),
+        commandReceived.cancel(),
+        requireSystemPermission.cancel(),
+        userRecordingConsentListener.cancel(),
+        networkStatusChangeListener.cancel(),
+        callCRCDeviceStatusListener.cancel(),
+      };
     }, [zoom, users.value, isMounted]);
 
     void selectVirtualBackgroundItem() async {
@@ -515,13 +503,13 @@ class _CallScreenState extends State<CallScreen> {
           (await zoom.liveTranscriptionHelper.getLiveTranscriptionStatus()) ==
               LiveTranscriptionStatus.Start;
       bool canStartLiveTranscription =
-          await zoom.liveTranscriptionHelper.canStartLiveTranscription();
+      await zoom.liveTranscriptionHelper.canStartLiveTranscription();
       bool isHost = (mySelf != null) ? (await mySelf.getIsHost()) : false;
       isOriginalAspectRatio.value =
-          await zoom.videoHelper.isOriginalAspectRatioEnabled();
+      await zoom.videoHelper.isOriginalAspectRatioEnabled();
       bool canCallOutToCRC = await zoom.CRCHelper.isCRCEnabled();
       bool supportVB =
-          await zoom.virtualBackgroundHelper.isSupportVirtualBackground();
+      await zoom.virtualBackgroundHelper.isSupportVirtualBackground();
       String? shareStatus = await mySelf?.getShareStatus();
 
       List<ListTile> options = [
@@ -603,7 +591,7 @@ class _CallScreenState extends State<CallScreen> {
             await zoom.audioSettingHelper
                 .enableMicOriginalInput(!isMicOriginalOn.value),
             isMicOriginalOn.value =
-                await zoom.audioSettingHelper.isMicOriginalInputEnable(),
+            await zoom.audioSettingHelper.isMicOriginalInputEnable(),
             debugPrint(
                 "Original sound ${isMicOriginalOn.value ? 'Enabled' : 'Disabled'}"),
             Navigator.of(context).pop(),
@@ -745,10 +733,10 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  debugPrint(
-                      "isShareLocked = ${await zoom.shareHelper.lockShare(!isShareLocked)}"),
-                  Navigator.of(context).pop(),
-                }));
+              debugPrint(
+                  "isShareLocked = ${await zoom.shareHelper.lockShare(!isShareLocked)}"),
+              Navigator.of(context).pop(),
+            }));
         options.add(ListTile(
           title: Text(
             'Change Name',
@@ -805,16 +793,16 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  await zoom.liveTranscriptionHelper
-                      .enableReceiveSpokenLanguageContent(
-                          !isReceiveSpokenLanguageContentEnabled.value),
-                  isReceiveSpokenLanguageContentEnabled.value = await zoom
-                      .liveTranscriptionHelper
-                      .isReceiveSpokenLanguageContentEnabled(),
-                  debugPrint(
-                      "isReceiveSpokenLanguageContentEnabled = ${isReceiveSpokenLanguageContentEnabled.value}"),
-                  Navigator.of(context).pop(),
-                }));
+              await zoom.liveTranscriptionHelper
+                  .enableReceiveSpokenLanguageContent(
+                  !isReceiveSpokenLanguageContentEnabled.value),
+              isReceiveSpokenLanguageContentEnabled.value = await zoom
+                  .liveTranscriptionHelper
+                  .isReceiveSpokenLanguageContentEnabled(),
+              debugPrint(
+                  "isReceiveSpokenLanguageContentEnabled = ${isReceiveSpokenLanguageContentEnabled.value}"),
+              Navigator.of(context).pop(),
+            }));
       }
 
       if (canStartRecording) {
@@ -830,23 +818,23 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  if (!isRecordingStarted.value)
-                    {
-                      debugPrint(
-                          'isRecordingStarted = ${await zoom.recordingHelper.startCloudRecording()}'),
-                    }
-                  else
-                    {
-                      debugPrint(
-                          'isRecordingStarted = ${await zoom.recordingHelper.stopCloudRecording()}'),
-                    },
-                  Navigator.of(context).pop(),
-                }));
+              if (!isRecordingStarted.value)
+                {
+                  debugPrint(
+                      'isRecordingStarted = ${await zoom.recordingHelper.startCloudRecording()}'),
+                }
+              else
+                {
+                  debugPrint(
+                      'isRecordingStarted = ${await zoom.recordingHelper.stopCloudRecording()}'),
+                },
+              Navigator.of(context).pop(),
+            }));
       }
 
       if (Platform.isAndroid) {
         bool isFlashlightSupported =
-            await zoom.videoHelper.isSupportFlashlight();
+        await zoom.videoHelper.isSupportFlashlight();
         bool isFlashlightOn = await zoom.videoHelper.isFlashlightOn();
         if (isFlashlightSupported) {
           options.add(ListTile(
@@ -861,16 +849,16 @@ class _CallScreenState extends State<CallScreen> {
                 ),
               ),
               onTap: () async => {
-                    if (!isFlashlightOn)
-                      {
-                        await zoom.videoHelper.turnOnOrOffFlashlight(true),
-                      }
-                    else
-                      {
-                        await zoom.videoHelper.turnOnOrOffFlashlight(false),
-                      },
-                    Navigator.of(context).pop(),
-                  }));
+                if (!isFlashlightOn)
+                  {
+                    await zoom.videoHelper.turnOnOrOffFlashlight(true),
+                  }
+                else
+                  {
+                    await zoom.videoHelper.turnOnOrOffFlashlight(false),
+                  },
+                Navigator.of(context).pop(),
+              }));
         }
       }
 
@@ -887,9 +875,9 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  isPiPView.value = !isPiPView.value,
-                  Navigator.of(context).pop(),
-                }));
+              isPiPView.value = !isPiPView.value,
+              Navigator.of(context).pop(),
+            }));
       }
 
       if (isVideoOn.value) {
@@ -905,11 +893,11 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  await zoom.videoHelper.mirrorMyVideo(!isVideoMirrored.value),
-                  isVideoMirrored.value =
-                      await zoom.videoHelper.isMyVideoMirrored(),
-                  Navigator.of(context).pop(),
-                }));
+              await zoom.videoHelper.mirrorMyVideo(!isVideoMirrored.value),
+              isVideoMirrored.value =
+              await zoom.videoHelper.isMyVideoMirrored(),
+              Navigator.of(context).pop(),
+            }));
         options.add(ListTile(
             title: Text(
               '${isOriginalAspectRatio.value ? 'Enable' : 'Disable'} original aspect ratio',
@@ -922,14 +910,14 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
             onTap: () async => {
-                  await zoom.videoHelper
-                      .enableOriginalAspectRatio(!isOriginalAspectRatio.value),
-                  isOriginalAspectRatio.value =
-                      await zoom.videoHelper.isOriginalAspectRatioEnabled(),
-                  debugPrint(
-                      "isOriginalAspectRatio= ${isOriginalAspectRatio.value}"),
-                  Navigator.of(context).pop(),
-                }));
+              await zoom.videoHelper
+                  .enableOriginalAspectRatio(!isOriginalAspectRatio.value),
+              isOriginalAspectRatio.value =
+              await zoom.videoHelper.isOriginalAspectRatioEnabled(),
+              debugPrint(
+                  "isOriginalAspectRatio= ${isOriginalAspectRatio.value}"),
+              Navigator.of(context).pop(),
+            }));
       }
 
       showDialog(
@@ -957,17 +945,14 @@ class _CallScreenState extends State<CallScreen> {
           });
     }
 
-
-
     void leaveConsultation() async {
       await zoom.leaveSession(false);
-      Navigator.of(context).pop(true);
     }
 
     Widget fullScreenView;
     Widget smallView;
 
-    if (isInSession.value && users.value.isNotEmpty) {
+    if (isInSession.value && fullScreenUser.value != null) {
       fullScreenView = AnimatedOpacity(
         opacity: opacityLevel,
         duration: const Duration(seconds: 3),
@@ -986,7 +971,20 @@ class _CallScreenState extends State<CallScreen> {
           resolution: VideoResolution.Resolution360,
         ),
       );
-
+    } else {
+      fullScreenView = Container(
+          color: Colors.black,
+          child: Center(
+            child: Text(
+              statusText.value,
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ));
+    }
+    if (users.value.isNotEmpty) {
       smallView = Container(
         height: 110,
         margin: const EdgeInsets.only(left: 20, right: 20),
@@ -1015,27 +1013,15 @@ class _CallScreenState extends State<CallScreen> {
             );
           },
           separatorBuilder: (BuildContext context, int index) =>
-              const Divider(),
+          const Divider(),
         ),
       );
     } else {
-      fullScreenView = Container(
-          color: Colors.black,
-          child: Center(
-            child: Text(
-              statusText.value,
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ));
       smallView = Container(
         height: 110,
         color: Colors.transparent,
       );
     }
-
     _changeOpacity;
     return PopScope(
       canPop: false,
@@ -1043,23 +1029,23 @@ class _CallScreenState extends State<CallScreen> {
         if (didPop) return;
 
         bool exitApp = await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text("Are you sure?"),
-                content: Text(
-                    "Do you want to leave this screen? \nTo return click 'Join Now' from the home screen"),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text("Cancel"),
-                  ),
-                  TextButton(
-                    onPressed:  leaveConsultation,
-                    child: Text("Yes"),
-                  ),
-                ],
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Are you sure?"),
+            content: Text(
+                "Do you want to leave this screen? \nTo return click 'Join Now' from the home screen"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text("Cancel"),
               ),
-            ) ??
+              TextButton(
+                onPressed: leaveConsultation,
+                child: Text("Yes"),
+              ),
+            ],
+          ),
+        ) ??
             false;
 
         if (exitApp) {
@@ -1088,20 +1074,20 @@ class _CallScreenState extends State<CallScreen> {
                                   onPressed: onPressAudio,
                                   icon: isMuted.value
                                       ? Image.asset(
-                                          "assets/icons/unmute@2x.png")
+                                      "assets/icons/unmute@2x.png")
                                       : Image.asset("assets/icons/mute@2x.png"),
                                   iconSize: circleButtonSize,
                                   tooltip:
-                                      isMuted.value == true ? "Unmute" : "Mute",
+                                  isMuted.value == true ? "Unmute" : "Mute",
                                 ),
                                 IconButton(
                                   onPressed: onPressVideo,
                                   iconSize: circleButtonSize,
                                   icon: isVideoOn.value
                                       ? Image.asset(
-                                          "assets/icons/video-off@2x.png")
+                                      "assets/icons/video-off@2x.png")
                                       : Image.asset(
-                                          "assets/icons/video-on@2x.png"),
+                                      "assets/icons/video-on@2x.png"),
                                 ),
                               ],
                             ),
