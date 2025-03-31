@@ -1,9 +1,8 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
 
-import '../ui/login.dart';
+
 class Common {
   Future<String> getIPAddress() async {
     try {
@@ -25,12 +24,7 @@ class Common {
     return '';
   }
 
-  void openLibraryScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => Login()),
-    );
-  }
+
 
   String getGMTOffset() {
     final DateTime now = DateTime.now();

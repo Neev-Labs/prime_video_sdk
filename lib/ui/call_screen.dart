@@ -13,7 +13,8 @@ import 'package:flutter_zoom_videosdk/native/zoom_videosdk_user.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../components/video_view.dart';
-import 'login.dart';
+import '../model/models.dart';
+
 
 class CallArguments {
   final bool isJoin;

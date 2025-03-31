@@ -61,6 +61,48 @@ class LoginRequestModel extends DataModel {
   }
 }
 
+class ConsultationRequestModel extends DataModel {
+  String consultationId;
+  String userType;
+  String browserTimeZone;
+  String currency;
+  String accessCountry;
+  String todayRate;
+
+  ConsultationRequestModel({
+    required this.consultationId,
+    required this.userType,
+    required this.browserTimeZone,
+    required this.currency,
+    required this.accessCountry,
+    required this.todayRate,
+  }) : super(ipAddress: '', userAgent: '', os: '');
+
+  factory ConsultationRequestModel.fromJson(Map<String, dynamic> json) {
+    return ConsultationRequestModel(
+      consultationId: json['consultationId'] ?? '',
+      userType: json['userType'] ?? '',
+      browserTimeZone: json['browserTimeZone'] ?? '',
+      currency: json['currency'] ?? '',
+      accessCountry: json['accessCountry'] ?? '',
+      todayRate: json['todayRate'] ?? '',
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      ...super.toJson(),
+      'consultationId': consultationId,
+      'userType': userType,
+      'browserTimeZone': browserTimeZone,
+      'currency': currency,
+      'accessCountry': accessCountry,
+      'todayRate': todayRate,
+    };
+  }
+}
+
 class RequestModel {
   String token;
   String C2MDVerificationToken;
@@ -115,4 +157,15 @@ class RequestDataModel extends RequestModel {
       requestType: json['requestType'] ?? '',
     );
   }
+}
+class JoinArguments {
+  final bool isJoin;
+  final String sessionName;
+  final String sessionPwd;
+  final String displayName;
+  final String sessionTimeout;
+  final String roleType;
+
+  JoinArguments(this.isJoin, this.sessionName, this.sessionPwd,
+      this.displayName, this.sessionTimeout, this.roleType);
 }
