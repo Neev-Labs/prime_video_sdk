@@ -323,6 +323,20 @@ class _CallScreenState extends State<CallScreen> {
         userShareStatusFlag.value = !userShareStatusFlag.value;
       });
 
+      void  leaveSession() async {
+        try {
+          await zoom.videoHelper.stopVideo();
+          await zoom.audioHelper.stopAudio();
+          leaveClicked.value = true;
+          await zoom.leaveSession(false);
+          await zoom.cleanup();
+
+          Navigator.of(context, rootNavigator: true).pop(true);
+        } catch (e) {
+          print("Error while leaving Zoom session: $e");
+        }
+      }
+
       final userJoinListener =
       eventListener.addListener(EventType.onUserJoin, (data) async {
         if (!isMounted()) return;
@@ -355,6 +369,13 @@ class _CallScreenState extends State<CallScreen> {
                   onPressed: () => Navigator.of(context).pop(false),
                   child: Text('Wait'),
                 ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // closes the dialog
+                    leaveSession(); // call your leave logic
+                  },
+                  child: Text('Exit'),
+                ),
               ],
             );
           },
@@ -366,7 +387,7 @@ class _CallScreenState extends State<CallScreen> {
         if (!isMounted()) return;
         debugPrint("data: $data");
         data = data as Map;
-        connectionStatus.value = 'The doctor has left this session';
+        connectionStatus.value = 'The doctor has ended this session.';
         var leftUserListJson = jsonDecode(data['leftUsers']) as List;
         for (var user in leftUserListJson) {
           final userMap = user as Map<String, dynamic>;
@@ -451,6 +472,24 @@ class _CallScreenState extends State<CallScreen> {
           isRecordingStarted.value = true;
         } else {
           isRecordingStarted.value = false;
+          showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              content: const Text('Recording has been stopped'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () async {
+                    await zoom.acceptRecordingConsent();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                    ;
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
         }
       });
 
@@ -874,6 +913,42 @@ class _CallScreenState extends State<CallScreen> {
 
     Widget fullScreenView;
     Widget smallView;
+    Widget recordView;
+    if (isRecordingStarted.value) {
+      recordView = Container(
+        color: Colors.black,
+        height: 50,
+        padding: const EdgeInsets.all(12),
+        alignment: Alignment.bottomCenter,
+        margin: const EdgeInsets.only(bottom: 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/icons/record.png',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "The audio is being recorded",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white, // optional styling
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      recordView = Container(
+        height: 0,
+        color: Colors.transparent,
+      );
+    }
+
     if (users.value.isNotEmpty) {
       smallView = Container(
         height: 110,
@@ -1026,6 +1101,7 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                     ],
                   )),
+              recordView,
             ],
           )),
     );

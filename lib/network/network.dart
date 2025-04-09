@@ -11,46 +11,32 @@ import '../model/login_response.dart';
 import '../ui/call_screen.dart';
 import '../util/progress_dialog.dart';
 
+import 'package:permission_handler/permission_handler.dart';
 
 class Network {
-  Future<LoginResponse> login(DataModel dataModel) async {
-    DataModel dataModel1 = await DataModel.create();
-    dataModel.os = dataModel1.os;
-    dataModel.ipAddress = dataModel1.ipAddress;
-    dataModel.userAgent = dataModel1.userAgent;
-    RequestDataModel requestModel = RequestDataModel(
-        token:
-        'fcfb70e15b304a88af137f8a0906e65c0bc7f1d662e6aed146f34c0e975d6756',
-        C2MDVerificationToken: '',
-        requestType: '3',
-        dataModel: dataModel);
-    final url = '${Constants.endPoint}passcodelogin';
-    print(requestModel.toJson());
-    final response = await http.post(Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(requestModel.toJson()));
-    if (response.statusCode == 200) {
-      return LoginResponse.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to create user');
-    }
+
+  Future<bool> checkCameraPermission() async {
+    var cameraStatus = await Permission.camera.status;
+    var microphoneStatus = await Permission.microphone.status;
+    return cameraStatus.isGranted && microphoneStatus.isGranted;
   }
 
   Future<String> joinConsultation(
-      BuildContext context, String appointmentID) async {
-
+      BuildContext context, String appointmentID, bool isProduction) async {
+    var permission = await checkCameraPermission();
+    if (!permission) {
+      return 'Please enable camera and audio permission';
+    }
     ProgressDialog.show(context);
     DataModel dataModel = await DataModel.create();
     ConsultationRequestModel consultationRequestModel =
     ConsultationRequestModel(
         consultationId: appointmentID,
-        userType: "Patient",
-        browserTimeZone: "GMT%2D05:30",
-        currency: "INR",
-        accessCountry: "IN",
-        todayRate: "");
+        userType: 'Patient',
+        browserTimeZone: 'GMT%2D05:30',
+        currency: 'INR',
+        accessCountry: 'IN',
+        todayRate: '');
     consultationRequestModel.os = dataModel.os;
     consultationRequestModel.ipAddress = dataModel.ipAddress;
     consultationRequestModel.userAgent = dataModel.userAgent;
@@ -60,7 +46,10 @@ class Network {
         C2MDVerificationToken: '',
         requestType: '400',
         dataModel: consultationRequestModel);
-    final url = '${Constants.endPoint}consultation';
+    final baseUrl = isProduction
+        ? Constants.PRODUCTIONendPoint
+        : Constants.UATendPoint;
+    final url = '${baseUrl}consultation';
     final response = await http.post(Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -72,8 +61,8 @@ class Network {
       ConsultationResponse consultationResponse =
       ConsultationResponse.fromJson(json.decode(response.body));
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
-          !(consultationResponse.data?.tokenId?.isEmpty ?? false) && !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
-
+          !(consultationResponse.data?.tokenId?.isEmpty ?? false) &&
+          !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -90,20 +79,21 @@ class Network {
             ),
           ),
         );
-        //
-        // final result = await Navigator.pushNamed(context, "Call",
-        //     arguments: CallArguments(consultationResponse.data!.sessionId!,
-        //         consultationResponse.data!.tokenId!, '', '', '40', '', true));
         if (result != null) {
-          return "Consultation completed";
+          return 'PSDK_1';
         } else {
-          return "Cancelled or No Data Returned";
+          return 'PSDK_2';
         }
       } else {
-        return "Consultation is not available with the appointment ID";
+        return 'PSDK_E_2';
       }
+    }
+    if (response.statusCode == 401) {
+      return 'PSDK_E_401';
+    } else if (response.statusCode == 500) {
+      return 'PSDK_E_500';
     } else {
-      return "Unable to connect to API. Please try again after sometime";
+      return 'PSDK_E_408';
     }
   }
 }
