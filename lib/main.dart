@@ -27,8 +27,16 @@ class ZoomVideoSdkProvider extends StatelessWidget {
       enableLog: true,
     );
     zoom.initSdk(initConfig);
-    return const SafeArea(
-      child: CallScreen(),
+    return SafeArea(
+      child: CallScreen(callArguments: CallArguments(
+        '',
+        '',
+        '',
+        '',
+        '40',
+        '',
+        true,
+      )),
     );
   }
 }

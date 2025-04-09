@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:prime_video_library/model/models.dart';
 import 'package:prime_video_library/util/constance.dart';
@@ -71,10 +72,28 @@ class Network {
       ConsultationResponse consultationResponse =
       ConsultationResponse.fromJson(json.decode(response.body));
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
-          !(consultationResponse.data?.tokenId?.isEmpty ?? false) && !(consultationResponse.data?.patientName?.isEmpty ?? false)) {
-        final result = await Navigator.pushNamed(context, "Call",
-            arguments: CallArguments(consultationResponse.data!.sessionId!,
-                consultationResponse.data!.tokenId!, '', '', '40', '', true));
+          !(consultationResponse.data?.tokenId?.isEmpty ?? false) && !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              callArguments: CallArguments(
+                consultationResponse.data!.sessionId!,
+                consultationResponse.data!.tokenId!,
+                '',
+                '',
+                '40',
+                '',
+                true,
+              ),
+            ),
+          ),
+        );
+        //
+        // final result = await Navigator.pushNamed(context, "Call",
+        //     arguments: CallArguments(consultationResponse.data!.sessionId!,
+        //         consultationResponse.data!.tokenId!, '', '', '40', '', true));
         if (result != null) {
           return "Consultation completed";
         } else {
