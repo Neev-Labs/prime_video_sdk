@@ -7,7 +7,6 @@ import 'package:prime_video_library/model/models.dart';
 import 'package:prime_video_library/util/constance.dart';
 
 import '../model/consultation_response.dart';
-import '../model/login_response.dart';
 import '../ui/call_screen.dart';
 import '../util/progress_dialog.dart';
 
@@ -25,7 +24,7 @@ class Network {
       BuildContext context, String appointmentID, bool isProduction) async {
     var permission = await checkCameraPermission();
     if (!permission) {
-      return 'Please enable camera and audio permission';
+      return 'PSDK_E_3';
     }
     ProgressDialog.show(context);
     DataModel dataModel = await DataModel.create();
