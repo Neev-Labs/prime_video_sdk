@@ -66,10 +66,10 @@ class _CallScreenState extends State<CallScreen> {
       await zoom.audioHelper.stopAudio();
       await zoom.leaveSession(false);
       await zoom.cleanup();
-      Navigator.of(context, rootNavigator: true).pop(true);
+      Navigator.of(context, rootNavigator: true).pop(false);
     } catch (e) {
       print("Error while leaving Zoom session: $e");
-      Navigator.of(context, rootNavigator: true).pop(true);
+      Navigator.of(context, rootNavigator: true).pop(false);
     }
   }
 
@@ -207,6 +207,7 @@ class _CallScreenState extends State<CallScreen> {
             .liveTranscriptionHelper
             .isReceiveSpokenLanguageContentEnabled();
       });
+
       final sessionLeaveListener =
       eventListener.addListener(EventType.onSessionLeave, (data) async {
         data = data as Map;
@@ -331,7 +332,7 @@ class _CallScreenState extends State<CallScreen> {
           await zoom.leaveSession(false);
           await zoom.cleanup();
 
-          Navigator.of(context, rootNavigator: true).pop(true);
+          Navigator.of(context, rootNavigator: true).pop(false);
         } catch (e) {
           print("Error while leaving Zoom session: $e");
         }
@@ -741,7 +742,7 @@ class _CallScreenState extends State<CallScreen> {
         await zoom.leaveSession(false);
         await zoom.cleanup();
 
-        Navigator.of(context, rootNavigator: true).pop(true);
+        Navigator.of(context, rootNavigator: true).pop(false);
       } catch (e) {
         print("Error while leaving Zoom session: $e");
       }
