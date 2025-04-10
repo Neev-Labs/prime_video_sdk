@@ -350,7 +350,7 @@ class _CallScreenState extends State<CallScreen> {
             .toList();
         for (var user in remoteUserList) {
           if (user.userName == 'Web_Doctor') {
-            isDoctorJoined = false;
+            isDoctorJoined = true;
             fullScreenUser.value = user;
           }
         }
