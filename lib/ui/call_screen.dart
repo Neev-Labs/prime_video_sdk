@@ -393,6 +393,7 @@ class _CallScreenState extends State<CallScreen> {
         for (var user in leftUserListJson) {
           final userMap = user as Map<String, dynamic>;
           if (userMap['userName'] == 'Web_Doctor') {
+            fullScreenUser.value = null;
             Future.delayed(Duration(seconds: 1), () {
               if (isInSession.value &&
                   !leaveClicked.value &&
@@ -401,7 +402,6 @@ class _CallScreenState extends State<CallScreen> {
                 connectionStatus.value =
                 'The doctor has stepped\naway/left this session';
                 showLeftDialog(context);
-                fullScreenUser.value = null;
               }
             });
             break;
