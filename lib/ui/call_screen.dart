@@ -167,7 +167,7 @@ class _CallScreenState extends State<CallScreen> {
     }, []);
 
     useEffect(() {
-      bool isPopupVisible = false;
+      bool isDoctorJoined = false;
 
       final sessionJoinListener =
       eventListener.addListener(EventType.onSessionJoin, (data) async {
@@ -190,6 +190,7 @@ class _CallScreenState extends State<CallScreen> {
         if (remoteUsers != null) {
           for (var user in remoteUsers) {
             if (user.userName == 'Web_Doctor') {
+              isDoctorJoined = true;
               fullScreenUser.value = user;
               if (await user.videoStatus?.isOn() == false) {
                 videoStatusFlag.value = false;
@@ -349,6 +350,7 @@ class _CallScreenState extends State<CallScreen> {
             .toList();
         for (var user in remoteUserList) {
           if (user.userName == 'Web_Doctor') {
+            isDoctorJoined = false;
             fullScreenUser.value = user;
           }
         }
@@ -358,6 +360,9 @@ class _CallScreenState extends State<CallScreen> {
       });
 
       void showLeftDialog(BuildContext context) {
+        if(isDoctorJoined) {
+          return;
+        }
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -394,11 +399,11 @@ class _CallScreenState extends State<CallScreen> {
           final userMap = user as Map<String, dynamic>;
           if (userMap['userName'] == 'Web_Doctor') {
             fullScreenUser.value = null;
+            isDoctorJoined = false;
             Future.delayed(Duration(seconds: 1), () {
               if (isInSession.value &&
                   !leaveClicked.value &&
                   data['reason'] == null) {
-                isPopupVisible = true;
                 connectionStatus.value =
                 'The doctor has stepped\naway/left this session';
                 showLeftDialog(context);
