@@ -26,6 +26,9 @@ class Network {
     if (!permission) {
       return 'PSDK_E_3';
     }
+    if(isProduction) {
+      return 'Production not configured';
+    }
     ProgressDialog.show(context);
     DataModel dataModel = await DataModel.create();
     ConsultationRequestModel consultationRequestModel =
