@@ -60,36 +60,6 @@ class _CallScreenState extends State<CallScreen> {
     super.dispose();
   }
 
-  void leaveConsultation() async {
-    try {
-      await zoom.videoHelper.stopVideo();
-      await zoom.audioHelper.stopAudio();
-      await zoom.leaveSession(false);
-      await zoom.cleanup();
-      Navigator.of(context, rootNavigator: true).pop(false);
-    } catch (e) {
-      print("Error while leaving Zoom session: $e");
-      Navigator.of(context, rootNavigator: true).pop(false);
-    }
-  }
-
-  void consultationEndAlert(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Consultation Ended'),
-          content: Text('The consultation has ended'),
-          actions: [
-            TextButton(
-              onPressed: () => leaveConsultation(),
-              child: Text('Goto Home'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,8 +186,10 @@ class _CallScreenState extends State<CallScreen> {
         isInSession.value = false;
         users.value = <ZoomVideoSdkUser>[];
         fullScreenUser.value = null;
-        await zoom.cleanup();
+        debugPrint("Can pop: ${Navigator.canPop(context)}");
+
         Navigator.of(context, rootNavigator: true).pop(true);
+        await zoom.cleanup();
       });
 
       final sessionNeedPasswordListener = eventListener
@@ -331,9 +303,7 @@ class _CallScreenState extends State<CallScreen> {
           await zoom.audioHelper.stopAudio();
           leaveClicked.value = true;
           await zoom.leaveSession(false);
-          await zoom.cleanup();
 
-          Navigator.of(context, rootNavigator: true).pop(false);
         } catch (e) {
           print("Error while leaving Zoom session: $e");
         }
@@ -745,9 +715,7 @@ class _CallScreenState extends State<CallScreen> {
         await zoom.audioHelper.stopAudio();
         leaveClicked.value = true;
         await zoom.leaveSession(false);
-        await zoom.cleanup();
 
-        Navigator.of(context, rootNavigator: true).pop(false);
       } catch (e) {
         print("Error while leaving Zoom session: $e");
       }
