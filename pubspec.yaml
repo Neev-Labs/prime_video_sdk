@@ -1,6 +1,6 @@
 name: prime_video_library
 description: "Prime Video SDK"
-version: 0.0.15
+version: 0.0.17
 homepage: "https://github.com/Neev-Labs/prime_video_sdk"
 repository: "https://github.com/Neev-Labs/prime_video_sdk"
 
@@ -18,7 +18,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
-  flutter_zoom_videosdk: ^2.1.10
+  flutter_zoom_videosdk: ^2.4.0
   http: ^1.2.2
   device_info_plus: ^11.2.0
   permission_handler: ^11.3.1
