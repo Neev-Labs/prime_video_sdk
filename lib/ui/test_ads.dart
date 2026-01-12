@@ -296,7 +296,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
 
                           // Doctor Info
                           Text(
-                            "${widget.reasonForVisit ?? "First time consultation"} with ${widget.doctorName ?? "Dr. Vps Doctor"}",
+                            "Video consultation with ${widget.doctorName ?? ""}",
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.start,
                           ),

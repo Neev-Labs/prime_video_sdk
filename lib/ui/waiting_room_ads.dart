@@ -55,6 +55,19 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   }
 
   @override
+  void didUpdateWidget(covariant WaitingRoomAds oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.adsData != oldWidget.adsData) {
+      _parseAds();
+      setState(() {
+         // UI update triggered by _parseAds changing _ads
+         _currentIndex = 0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
+         _currentHeight = _heights.isNotEmpty ? _heights[0] : 200;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
