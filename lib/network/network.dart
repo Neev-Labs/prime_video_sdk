@@ -53,17 +53,7 @@ class Network {
     // 2. Check appointmentStatus
     if (checkResponse.data?.appointmentStatus != 'ACTIVE') {
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
-      // Logic for non-active appointment (e.g. show waiting room or error)
-      // Since prompts says "if appointmentStatus IS ACTIVE then...", 
-      // implied else: we might still want to show waiting room if just waiting?
-      // But typically if not active it might be EXPIRED or SCHEDULED.
-      // For now, let's treat as "Not Ready" -> Waiting Room (if that's the desired flow)
-      // OR fail. The user said: "if the appointmentStatus is "ACTIVE" then immediately after call follwing api"
-      // If not active, we probably shouldn't call the next API.
-      // But we need to handle "Join" -> "Wait" flow safely.
-      // Let's assume if NOT Active, we check if we should go to waiting room anyway?
-      // Actually, if it's NOT active, we can't get the token/session presumably.
-      // Let's redirect to waiting room if we can't proceed, effectively polling.
+    
         if (isFromWaitingRoom) {
           return 'WAITING';
         }
@@ -80,7 +70,7 @@ class Network {
             ),
           ),
         );
-        // return 'PSDK_E_2';
+         return 'PSDK_E_2';
     }
 
     String? userId = checkResponse.data?.patientId;
@@ -126,55 +116,6 @@ class Network {
     debugPrint('API Response [${response.statusCode}]: ${response.body}');
 
     if (response.statusCode == 200) {
-      // ... existing code ...
-    }
-
-  // in consultationCheck
-  Future<ConsultationCheckResponse?> consultationCheck(
-      String appointmentID, bool isProduction) async {
-    // ... url setup ...
-    final url = '${baseUrl}consultationcheck';
-    // ... body setup ...
-
-    debugPrint('API Request: $url');
-    debugPrint('Request Body: ${json.encode(body)}');
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(body),
-      );
-      
-      debugPrint('API Response [${response.statusCode}]: ${response.body}');
-
-      if (response.statusCode == 200) {
-    // ...
-
-  // in getAds
-  Future<Map<String, dynamic>?> getAds(bool isProduction) async {
-    // ... url setup ...
-    final url = '${baseUrl}getads';
-    // ... body setup ...
-
-    debugPrint('API Request: $url');
-    debugPrint('Request Body: ${json.encode(body)}');
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(body),
-      );
-
-      debugPrint('API Response [${response.statusCode}]: ${response.body}');
-
-      if (response.statusCode == 200) {
-    // ...
       ConsultationResponse consultationResponse =
           ConsultationResponse.fromJson(json.decode(response.body));
 
@@ -197,7 +138,7 @@ class Network {
             ),
           ),
         );
-        // return 'PSDK_E_2';
+         return 'PSDK_E_2';
       }
 
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
@@ -254,7 +195,6 @@ class Network {
       "requestType": 1077
     };
 
-    // ... inside consultationCheck
     debugPrint('API Request: $url');
     debugPrint('Request Body: ${json.encode(body)}');
 
@@ -275,8 +215,9 @@ class Network {
     } catch (e) {
       debugPrint("consultationCheck error: $e");
     }
+    return null;
+  }
 
-  // ... inside getAds
   Future<Map<String, dynamic>?> getAds(bool isProduction) async {
     final baseUrl = isProduction
         ? Constants.PRODUCTIONendPoint
@@ -313,6 +254,4 @@ class Network {
     }
     return null;
   }
-
-
 }
