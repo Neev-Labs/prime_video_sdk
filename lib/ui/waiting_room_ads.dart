@@ -62,7 +62,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
       setState(() {
         // UI update triggered by _parseAds changing _ads
         _currentIndex =
-            0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
+        0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
         _currentHeight = 300; // Force 300 for testing
       });
     }
@@ -119,50 +119,48 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     }
   }
 
-  String? _getYoutubeVideoId(String url) {
-    if (url.isEmpty) return null;
-    debugPrint("Attempting to extract ID from: $url");
+  //
+  // String? _getYoutubeVideoId(String url) {
+  //   return "VkJX6EPGq18";
+  // }
+
+  String? getYoutubeVideoId(String? url) {
+    if (url == null || url.isEmpty) return null;
 
     try {
-      final uri = Uri.parse(url);
-      if (uri.host.contains('youtube.com') &&
-          uri.queryParameters.containsKey('v')) {
-        debugPrint("Found ID via query param: ${uri.queryParameters['v']}");
-        return uri.queryParameters['v'];
+      final uri = Uri.parse(url.trim());
+
+      // 1️⃣ Standard YouTube URL
+      final v = uri.queryParameters['v'];
+      if (v != null && v.length == 11) {
+        return v;
       }
-      if (uri.host.contains('youtu.be') && uri.pathSegments.isNotEmpty) {
-        debugPrint("Found ID via path segment: ${uri.pathSegments.first}");
+
+      // 2️⃣ Short URL: youtu.be/<id>
+      if (uri.host.endsWith('youtu.be') && uri.pathSegments.isNotEmpty) {
         return uri.pathSegments.first;
       }
-      if (uri.host.contains('youtube.com') &&
-          uri.pathSegments.contains('embed')) {
+
+      // 3️⃣ Embedded URL: /embed/<id>
+      if (uri.pathSegments.contains('embed')) {
         final index = uri.pathSegments.indexOf('embed');
         if (index + 1 < uri.pathSegments.length) {
           return uri.pathSegments[index + 1];
         }
       }
-    } catch (e) {
-      debugPrint("Uri parse error: $e");
+    } catch (_) {
+      // ignore
     }
 
-    // Fallback Regex
-    RegExp regExp = RegExp(
-      r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})',
-      caseSensitive: false,
-      multiLine: false,
-    );
+    // 4️⃣ Final fallback: regex (strict 11-char ID)
+    final regExp = RegExp(r'([a-zA-Z0-9_-]{11})');
     final match = regExp.firstMatch(url);
-    if (match != null && match.groupCount >= 1) {
-      debugPrint("Found ID via Regex: ${match.group(1)}");
-      return match.group(1);
-    }
-    debugPrint("Failed to extract video ID");
-    return null;
+    return match?.group(1);
   }
 
   String? _getThumbnailUrl(Ad ad) {
     if (ad.videoLink != null && ad.videoLink!.isNotEmpty) {
-      final videoId = _getYoutubeVideoId(ad.videoLink!);
+      final videoId = getYoutubeVideoId(ad.videoLink!);
       if (videoId != null) {
         // Use reliable thumbnail
         return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
@@ -187,8 +185,12 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
               errorBuilder: (context, error, stackTrace) {
                 // Fallback if asset not found (e.g. package issue)
                 return const Center(
-                    child: Icon(Icons.image_not_supported,
-                        size: 50, color: Colors.grey));
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: 50,
+                    color: Colors.grey,
+                  ),
+                );
               },
             ),
           ),
@@ -230,9 +232,9 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                       final showPlayButton = ad.type == 'Online video';
 
                       final targetUrl =
-                          (ad.videoLink != null && ad.videoLink!.isNotEmpty)
-                              ? ad.videoLink
-                              : ad.clickthroughUrl;
+                      (ad.videoLink != null && ad.videoLink!.isNotEmpty)
+                          ? ad.videoLink
+                          : ad.clickthroughUrl;
 
                       return OverflowBox(
                         minHeight: 0,
@@ -243,13 +245,9 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Image.network(
-                                'https://img.youtube.com/vi/VkJX6EPGq18/hqdefault.jpg',
-                              ),
-
                               // Image Node (Show if URL exists OR it's a video ad)
                               if (ad.videoLink != null &&
-                                      ad.videoLink!.isNotEmpty ||
+                                  ad.videoLink!.isNotEmpty ||
                                   imageUrl != null && imageUrl.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
@@ -269,41 +267,52 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                               Image.network(
                                                 imageUrl!,
                                                 fit: BoxFit.cover,
-                                                loadingBuilder: (context, child,
-                                                    loadingProgress) {
+                                                loadingBuilder: (
+                                                    context,
+                                                    child,
+                                                    loadingProgress,
+                                                    ) {
                                                   if (loadingProgress == null)
                                                     return child;
                                                   return Container(
                                                     color: Colors.black12,
                                                     child: const Center(
-                                                        child:
-                                                            CircularProgressIndicator()),
+                                                      child:
+                                                      CircularProgressIndicator(),
+                                                    ),
                                                   );
                                                 },
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
+                                                errorBuilder: (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                    ) {
                                                   debugPrint(
-                                                      "Thumbnail load failed: $imageUrl");
+                                                    "Thumbnail load failed: $imageUrl",
+                                                  );
                                                   return Container(
                                                     color: Colors.black12,
                                                     child: const Center(
                                                       child: Icon(
-                                                          Icons
-                                                              .play_circle_outline,
-                                                          size: 64,
-                                                          color: Colors.white),
+                                                        Icons
+                                                            .play_circle_outline,
+                                                        size: 64,
+                                                        color: Colors.white,
+                                                      ),
                                                     ),
                                                   );
                                                 },
                                               )
                                             else
-                                              // Fallback for video with no thumbnail
+                                            // Fallback for video with no thumbnail
                                               Container(
-                                                  color: Colors.black12,
-                                                  child: const Icon(
-                                                      Icons.videocam,
-                                                      size: 50,
-                                                      color: Colors.grey)),
+                                                color: Colors.black12,
+                                                child: const Icon(
+                                                  Icons.videocam,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
                                             if (showPlayButton)
                                               Center(
                                                 child: Container(
@@ -312,8 +321,9 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                                         .withOpacity(0.5),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  padding:
-                                                      const EdgeInsets.all(12),
+                                                  padding: const EdgeInsets.all(
+                                                    12,
+                                                  ),
                                                   child: const Icon(
                                                     Icons.play_arrow,
                                                     color: Colors.white,
@@ -329,12 +339,12 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                 ),
 
                               // Description (HTML)
-                              if (ad.videoLink == null &&
-                                  ad.description != null &&
+                              if (ad.description != null &&
                                   ad.description!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 0.0),
+                                    horizontal: 0.0,
+                                  ),
                                   child: Html(
                                     data: ad.description,
                                     style: {
@@ -359,12 +369,11 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                   ),
                                 ),
 
-                              if (ad.videoLink == null)
-                                const SizedBox(height: 16),
+
+                              const SizedBox(height: 16),
 
                               // Call To Action Button
-                              if (ad.videoLink == null &&
-                                  ad.callToActionText != null &&
+                              if (ad.callToActionText != null &&
                                   ad.callToActionText!.isNotEmpty &&
                                   targetUrl != null &&
                                   targetUrl.isNotEmpty)
@@ -376,11 +385,14 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                         side: BorderSide(color: primaryColor),
                                         foregroundColor: primaryColor,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
+                                          borderRadius: BorderRadius.circular(
+                                            4.0,
+                                          ),
                                         ),
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 32, vertical: 12),
+                                          horizontal: 32,
+                                          vertical: 12,
+                                        ),
                                       ),
                                       onPressed: () => _launchUrl(targetUrl),
                                       child: Text(
@@ -422,7 +434,8 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                     margin: const EdgeInsets.symmetric(horizontal: 4.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentIndex == idx
+                      color:
+                      _currentIndex == idx
                           ? primaryColor
                           : Colors.grey.withOpacity(0.5),
                     ),
@@ -463,11 +476,8 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
 class MeasureSize extends SingleChildRenderObjectWidget {
   final ValueChanged<Size> onChange;
 
-  const MeasureSize({
-    super.key,
-    required this.onChange,
-    required Widget child,
-  }) : super(child: child);
+  const MeasureSize({super.key, required this.onChange, required Widget child})
+      : super(child: child);
 
   @override
   RenderObject createRenderObject(BuildContext context) {
