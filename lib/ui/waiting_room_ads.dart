@@ -107,26 +107,27 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
 
   String? _getYoutubeVideoId(String url) {
     if (url.isEmpty) return null;
+    debugPrint("Attempting to extract ID from: $url");
     
     try {
       final uri = Uri.parse(url);
-      // Handle youtube.com/watch?v=VIDEO_ID
       if (uri.host.contains('youtube.com') && uri.queryParameters.containsKey('v')) {
+        debugPrint("Found ID via query param: ${uri.queryParameters['v']}");
         return uri.queryParameters['v'];
       }
-      
-      // Handle youtu.be/VIDEO_ID
       if (uri.host.contains('youtu.be') && uri.pathSegments.isNotEmpty) {
+        debugPrint("Found ID via path segment: ${uri.pathSegments.first}");
         return uri.pathSegments.first;
       }
-      // Handle youtube.com/embed/VIDEO_ID
       if (uri.host.contains('youtube.com') && uri.pathSegments.contains('embed')) {
           final index = uri.pathSegments.indexOf('embed');
           if (index + 1 < uri.pathSegments.length) {
               return uri.pathSegments[index + 1];
           }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint("Uri parse error: $e");
+    }
 
     // Fallback Regex
     RegExp regExp = RegExp(
@@ -136,8 +137,10 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     );
     final match = regExp.firstMatch(url);
     if (match != null && match.groupCount >= 1) {
+       debugPrint("Found ID via Regex: ${match.group(1)}");
       return match.group(1);
     }
+    debugPrint("Failed to extract video ID");
     return null;
   }
 
@@ -245,8 +248,12 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                                 child: const Center(child: CircularProgressIndicator()),
                                               );
                                             },
-                                            errorBuilder: (context, error, stackTrace) =>
-                                                const SizedBox.shrink(),
+                                            errorBuilder: (context, error, stackTrace) {
+                                                debugPrint("Ad image failed to load: $error, url: $imageUrl");
+                                                return const Center(
+                                                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                                );
+                                            },
                                           ),
                                           if (showPlayButton)
                                             Container(
