@@ -34,11 +34,13 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   Timer? _pollingTimer;
   int _secondsRemaining = 300; // 5:00 in seconds
   String? _patientId;
+  String? _doctorImage;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _checkConsultationStatus(); // Initial check
     _startPolling();
     _fetchPatientDetails();
     _fetchAds();
@@ -82,14 +84,25 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   }
 
   void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
-      await Network().joinConsultation(
-        context,
-        widget.appointmentId,
-        widget.isProduction,
-        isFromWaitingRoom: true,
-      );
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _checkConsultationStatus();
     });
+  }
+
+  Future<void> _checkConsultationStatus() async {
+    await Network().joinConsultation(
+      context,
+      widget.appointmentId,
+      widget.isProduction,
+      isFromWaitingRoom: true,
+      onConsultationFetch: (response) {
+         if (mounted && response.data?.doctorDetails?.doctorImage != null) {
+            setState(() {
+               _doctorImage = response.data!.doctorDetails!.doctorImage;
+            });
+         }
+      },
+    );
   }
 
   void _startTimer() {
@@ -279,13 +292,22 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start, // Left aligned
                         children: [
                           // Video Preview
-                          Center( // Image keeps centered usually, or should it be left? "all text... left aligned". Images usually center. keeping center for now unless requested.
+                          Center(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 width: 120,
                                 height: 120,
                                 color: Colors.grey[400],
+                                child: _doctorImage != null && _doctorImage!.isNotEmpty
+                                    ? Image.network(
+                                        _doctorImage!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const Icon(Icons.person, size: 60, color: Colors.white);
+                                        },
+                                      )
+                                    : const Icon(Icons.person, size: 60, color: Colors.white),
                               ),
                             ),
                           ),

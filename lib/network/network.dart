@@ -24,7 +24,8 @@ class Network {
 
   Future<String> joinConsultation(
       BuildContext context, String appointmentID, bool isProduction,
-      {bool isFromWaitingRoom = false}) async {
+      {bool isFromWaitingRoom = false,
+      Function(ConsultationResponse)? onConsultationFetch}) async {
     var permission = await checkCameraPermission();
     if (!permission) {
       return 'PSDK_E_3';
@@ -118,6 +119,10 @@ class Network {
     if (response.statusCode == 200) {
       ConsultationResponse consultationResponse =
           ConsultationResponse.fromJson(json.decode(response.body));
+
+      if (onConsultationFetch != null) {
+        onConsultationFetch(consultationResponse);
+      }
 
       if (consultationResponse.data?.doctorScreenstatus == null ||
           consultationResponse.data?.doctorScreenstatus !=
