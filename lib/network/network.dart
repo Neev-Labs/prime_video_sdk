@@ -80,7 +80,7 @@ class Network {
             ),
           ),
         );
-        return 'PSDK_E_2';
+        // return 'PSDK_E_2';
     }
 
     String? userId = checkResponse.data?.patientId;
@@ -143,7 +143,7 @@ class Network {
             ),
           ),
         );
-        return 'PSDK_E_2';
+        // return 'PSDK_E_2';
       }
 
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
@@ -217,5 +217,38 @@ class Network {
     }
     return null;
   }
+
+  Future<Map<String, dynamic>?> getAds(bool isProduction) async {
+    final baseUrl = isProduction
+        ? Constants.PRODUCTIONendPoint
+        : Constants.UATendPoint;
+    final url = '${baseUrl}getads';
+
+    final Map<String, dynamic> body = {
+      "token": "d0e51850f7406e07e769addae636997621894720df8375d83bde6e582c0f8686",
+      "data": {
+        "clinicId": "144" 
+      },
+      "requestType": 0
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      debugPrint("getAds error: $e");
+    }
+    return null;
+  }
+
 
 }

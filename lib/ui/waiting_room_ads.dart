@@ -9,6 +9,7 @@ class Ad {
   final String? description;
   final String? callToActionText;
   final String? clickthroughUrl;
+  final String? type;
 
   Ad({
     this.videoLink,
@@ -16,6 +17,7 @@ class Ad {
     this.description,
     this.callToActionText,
     this.clickthroughUrl,
+    this.type,
   });
 
   factory Ad.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class Ad {
       description: json['description'],
       callToActionText: json['callToActionText'],
       clickthroughUrl: json['clickthroughUrl'],
+      type: json['type'],
     );
   }
 }
@@ -58,8 +61,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   }
 
   void _parseAds() {
-    // Filter out ads that might be completely empty or invalid if necessary
-    // For now, we accept them but individual components will hide if null
     _ads = widget.adsData.map((e) => Ad.fromJson(e)).toList();
     _heights = List.filled(_ads.length, 200.0);
   }
@@ -91,7 +92,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
 
   void _onSizeChanged(int index, Size size) {
     if (_heights[index] != size.height) {
-      // Use post frame callback to avoid build conflicts
       WidgetsBinding.instance.addPostFrameCallback((_) {
          if (mounted) {
            setState(() {
@@ -105,21 +105,60 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     }
   }
 
+  String? _getYoutubeVideoId(String url) {
+    RegExp regExp = RegExp(
+      r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})',
+      caseSensitive: false,
+      multiLine: false,
+    );
+    final match = regExp.firstMatch(url);
+    if (match != null && match.groupCount >= 1) {
+      return match.group(1);
+    }
+    return null;
+  }
+
+  String? _getThumbnailUrl(Ad ad) {
+    if (ad.videoLink != null && ad.videoLink!.isNotEmpty) {
+      final videoId = _getYoutubeVideoId(ad.videoLink!);
+      if (videoId != null) {
+        return 'https://img.youtube.com/vi/$videoId/0.jpg';
+      }
+    }
+    return ad.image;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_ads.isEmpty) return const SizedBox.shrink();
+    if (_ads.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Opacity(
+            opacity: 0.5,
+            child: Image.asset(
+              'assets/images/hospital_building.jpg',
+              package: 'prime_video_library',
+              height: 200,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                 // Fallback if asset not found (e.g. package issue)
+                 return const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey));
+              },
+            ),
+          ),
+        ),
+      );
+    }
 
-    // Define the purple color from the screenshot approximately
     final primaryColor = const Color(0xFF673AB7); 
 
     return Container(
-      // padding: const EdgeInsets.all(16.0), // Removed extra padding
       child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-               // Left Arrow
                if (_ads.length > 1) 
                  _buildArrowButton(
                    icon: Icons.chevron_left,
@@ -130,7 +169,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                if (_ads.length > 1)
                  const SizedBox(width: 5),
                  
-               // Main Content
                Expanded(
                  child: AnimatedContainer(
                    duration: const Duration(milliseconds: 100),
@@ -146,6 +184,13 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                      },
                      itemBuilder: (context, index) {
                        final ad = _ads[index];
+                       final imageUrl = _getThumbnailUrl(ad);
+                       final showPlayButton = ad.type == 'Online video';
+
+                       final targetUrl = (ad.videoLink != null && ad.videoLink!.isNotEmpty) 
+                           ? ad.videoLink 
+                           : ad.clickthroughUrl;
+
                        return OverflowBox(
                          minHeight: 0,
                          maxHeight: double.infinity,
@@ -155,25 +200,46 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Image
-                              if (ad.image != null && ad.image!.isNotEmpty)
+                              // Image Node
+                              if (imageUrl != null && imageUrl.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.network(
-                                      ad.image!,
-                                      fit: BoxFit.fitWidth, // Width same (fill), height variable
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return Container(
-                                          height: 200, // Placeholder height
-                                          color: Colors.grey[200],
-                                          child: const Center(child: CircularProgressIndicator()),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const SizedBox.shrink(),
+                                  child: GestureDetector(
+                                    onTap: () => _launchUrl(targetUrl),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.fitWidth, 
+                                            loadingBuilder: (context, child, loadingProgress) {
+                                              if (loadingProgress == null) return child;
+                                              return Container(
+                                                height: 200, 
+                                                color: Colors.grey[200],
+                                                child: const Center(child: CircularProgressIndicator()),
+                                              );
+                                            },
+                                            errorBuilder: (context, error, stackTrace) =>
+                                                const SizedBox.shrink(),
+                                          ),
+                                          if (showPlayButton)
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.5),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              padding: const EdgeInsets.all(12),
+                                              child: const Icon(
+                                                Icons.play_arrow,
+                                                color: Colors.white,
+                                                size: 32,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -181,14 +247,14 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                               // Description (HTML)
                               if (ad.description != null && ad.description!.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 0.0), // Adjust if needed
+                                  padding: const EdgeInsets.symmetric(horizontal: 0.0), 
                                   child: Html(
                                     data: ad.description,
                                     style: {
                                       "body": Style(
                                         margin: Margins.zero,
                                         padding: HtmlPaddings.zero,
-                                        fontFamily: 'Inter', // Try to use common font if available
+                                        fontFamily: 'Inter', 
                                         color: Colors.black87,
                                       ),
                                       "h5": Style(
@@ -211,9 +277,9 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                               // Call To Action Button
                               if (ad.callToActionText != null &&
                                   ad.callToActionText!.isNotEmpty &&
-                                  ad.clickthroughUrl != null)
+                                  targetUrl != null && targetUrl.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom: 0.0), // Reduced bottom padding as dots are outside
+                                  padding: const EdgeInsets.only(bottom: 0.0), 
                                   child: Center(
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(
@@ -225,7 +291,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 32, vertical: 12),
                                       ),
-                                      onPressed: () => _launchUrl(ad.clickthroughUrl),
+                                      onPressed: () => _launchUrl(targetUrl),
                                       child: Text(
                                         ad.callToActionText!,
                                         style: const TextStyle(
@@ -245,7 +311,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                  ),
                ),
                
-               // Right Arrow
                if (_ads.length > 1)
                   const SizedBox(width: 5),
     
@@ -258,7 +323,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
             ],
           ),
           
-          // Page Indicators (Outside Layout)
           if (_ads.length > 1)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
@@ -301,7 +365,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
         icon: Icon(icon),
         color: primaryColor,
         onPressed: onPressed,
-        constraints: const BoxConstraints(), // tight
+        constraints: const BoxConstraints(),
         padding: EdgeInsets.zero,
         iconSize: 25,
       ),
@@ -309,7 +373,6 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   }
 }
 
-// Helper Widget to report size changes
 class MeasureSize extends SingleChildRenderObjectWidget {
   final ValueChanged<Size> onChange;
 
