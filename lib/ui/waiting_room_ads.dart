@@ -231,10 +231,14 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                       final imageUrl = _getThumbnailUrl(ad);
                       final showPlayButton = ad.type == 'Online video';
 
-                      final targetUrl =
-                      (ad.videoLink != null && ad.videoLink!.isNotEmpty)
-                          ? ad.videoLink
+                      final imageTapUrl = (ad.videoLink != null && ad.videoLink!.isNotEmpty) 
+                          ? ad.videoLink 
                           : ad.clickthroughUrl;
+                      
+                      // Button always goes to clickthrough if available, or videoLink if not
+                      final buttonUrl = (ad.clickthroughUrl != null && ad.clickthroughUrl!.isNotEmpty)
+                          ? ad.clickthroughUrl
+                          : ad.videoLink;
 
                       return OverflowBox(
                         minHeight: 0,
@@ -252,7 +256,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: GestureDetector(
-                                    onTap: () => _launchUrl(targetUrl),
+                                    onTap: () => _launchUrl(imageTapUrl),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
                                       child: SizedBox(
@@ -375,8 +379,8 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                               // Call To Action Button
                               if (ad.callToActionText != null &&
                                   ad.callToActionText!.isNotEmpty &&
-                                  targetUrl != null &&
-                                  targetUrl.isNotEmpty)
+                                  buttonUrl != null &&
+                                  buttonUrl.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 0.0),
                                   child: Center(
@@ -394,7 +398,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                           vertical: 12,
                                         ),
                                       ),
-                                      onPressed: () => _launchUrl(targetUrl),
+                                      onPressed: () => _launchUrl(buttonUrl),
                                       child: Text(
                                         ad.callToActionText!,
                                         style: const TextStyle(
