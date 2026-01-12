@@ -60,9 +60,10 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     if (widget.adsData != oldWidget.adsData) {
       _parseAds();
       setState(() {
-         // UI update triggered by _parseAds changing _ads
-         _currentIndex = 0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
-         _currentHeight = 300; // Force 300 for testing
+        // UI update triggered by _parseAds changing _ads
+        _currentIndex =
+            0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
+        _currentHeight = 300; // Force 300 for testing
       });
     }
   }
@@ -106,14 +107,14 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   void _onSizeChanged(int index, Size size) {
     if (_heights[index] != size.height) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (mounted) {
-           setState(() {
+        if (mounted) {
+          setState(() {
             _heights[index] = size.height;
             if (index == _currentIndex) {
               _currentHeight = _heights[index];
             }
           });
-         }
+        }
       });
     }
   }
@@ -121,10 +122,11 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   String? _getYoutubeVideoId(String url) {
     if (url.isEmpty) return null;
     debugPrint("Attempting to extract ID from: $url");
-    
+
     try {
       final uri = Uri.parse(url);
-      if (uri.host.contains('youtube.com') && uri.queryParameters.containsKey('v')) {
+      if (uri.host.contains('youtube.com') &&
+          uri.queryParameters.containsKey('v')) {
         debugPrint("Found ID via query param: ${uri.queryParameters['v']}");
         return uri.queryParameters['v'];
       }
@@ -132,11 +134,12 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
         debugPrint("Found ID via path segment: ${uri.pathSegments.first}");
         return uri.pathSegments.first;
       }
-      if (uri.host.contains('youtube.com') && uri.pathSegments.contains('embed')) {
-          final index = uri.pathSegments.indexOf('embed');
-          if (index + 1 < uri.pathSegments.length) {
-              return uri.pathSegments[index + 1];
-          }
+      if (uri.host.contains('youtube.com') &&
+          uri.pathSegments.contains('embed')) {
+        final index = uri.pathSegments.indexOf('embed');
+        if (index + 1 < uri.pathSegments.length) {
+          return uri.pathSegments[index + 1];
+        }
       }
     } catch (e) {
       debugPrint("Uri parse error: $e");
@@ -150,7 +153,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     );
     final match = regExp.firstMatch(url);
     if (match != null && match.groupCount >= 1) {
-       debugPrint("Found ID via Regex: ${match.group(1)}");
+      debugPrint("Found ID via Regex: ${match.group(1)}");
       return match.group(1);
     }
     debugPrint("Failed to extract video ID");
@@ -161,7 +164,8 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
     if (ad.videoLink != null && ad.videoLink!.isNotEmpty) {
       final videoId = _getYoutubeVideoId(ad.videoLink!);
       if (videoId != null) {
-        return 'https://img.youtube.com/vi/$videoId/0.jpg';
+        // Use reliable thumbnail
+        return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
       }
     }
     return ad.image;
@@ -181,8 +185,10 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
               height: 200,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                 // Fallback if asset not found (e.g. package issue)
-                 return const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey));
+                // Fallback if asset not found (e.g. package issue)
+                return const Center(
+                    child: Icon(Icons.image_not_supported,
+                        size: 50, color: Colors.grey));
               },
             ),
           ),
@@ -190,7 +196,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
       );
     }
 
-    final primaryColor = const Color(0xFF673AB7); 
+    final primaryColor = const Color(0xFF673AB7);
 
     return Container(
       child: Column(
@@ -198,49 +204,49 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-               if (_ads.length > 1) 
-                 _buildArrowButton(
-                   icon: Icons.chevron_left,
-                   onPressed: _prevAd,
-                   primaryColor: primaryColor,
-                 ),
-               
-               if (_ads.length > 1)
-                 const SizedBox(width: 5),
-                 
-               Expanded(
-                 child: AnimatedContainer(
-                   duration: const Duration(milliseconds: 100),
-                   height: _currentHeight > 0 ? _currentHeight : 200,
-                   child: PageView.builder(
-                     controller: _pageController,
-                     itemCount: _ads.length,
-                     onPageChanged: (index) {
-                       setState(() {
-                         _currentIndex = index;
-                         _currentHeight = _heights[index];
-                       });
-                     },
-                     itemBuilder: (context, index) {
-                       final ad = _ads[index];
-                       final imageUrl = _getThumbnailUrl(ad);
-                       final showPlayButton = ad.type == 'Online video';
+              if (_ads.length > 1)
+                _buildArrowButton(
+                  icon: Icons.chevron_left,
+                  onPressed: _prevAd,
+                  primaryColor: primaryColor,
+                ),
+              if (_ads.length > 1) const SizedBox(width: 5),
+              Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 100),
+                  height: _currentHeight > 0 ? _currentHeight : 200,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _ads.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                        _currentHeight = _heights[index];
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final ad = _ads[index];
+                      final imageUrl = _getThumbnailUrl(ad);
+                      final showPlayButton = ad.type == 'Online video';
 
-                       final targetUrl = (ad.videoLink != null && ad.videoLink!.isNotEmpty) 
-                           ? ad.videoLink 
-                           : ad.clickthroughUrl;
+                      final targetUrl =
+                          (ad.videoLink != null && ad.videoLink!.isNotEmpty)
+                              ? ad.videoLink
+                              : ad.clickthroughUrl;
 
-                       return OverflowBox(
-                         minHeight: 0,
-                         maxHeight: double.infinity,
-                         alignment: Alignment.topCenter,
-                         child: MeasureSize(
-                           onChange: (size) => _onSizeChanged(index, size),
-                           child: Column(
+                      return OverflowBox(
+                        minHeight: 0,
+                        maxHeight: double.infinity,
+                        alignment: Alignment.topCenter,
+                        child: MeasureSize(
+                          onChange: (size) => _onSizeChanged(index, size),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // Image Node (Show if URL exists OR it's a video ad)
-                              // if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.videoLink != null && ad.videoLink!.isNotEmpty))
+                              if (ad.videoLink != null &&
+                                      ad.videoLink!.isNotEmpty ||
+                                  imageUrl != null && imageUrl.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: GestureDetector(
@@ -251,49 +257,59 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                         height: 200, // Force height
                                         child: Stack(
                                           alignment: Alignment.center,
-                                          fit: StackFit.expand, // Force children to fill
+                                          fit: StackFit.expand,
+                                          // Force children to fill
                                           children: [
-                                            // if (imageUrl != null && imageUrl.isNotEmpty)
+                                            if (imageUrl != null &&
+                                                imageUrl.isNotEmpty)
                                               Image.network(
-                                                  imageUrl,
-                                                  fit: BoxFit.cover, // Cover the area
-                                                  loadingBuilder: (context, child, loadingProgress) {
-                                                    if (loadingProgress == null) return child;
-                                                    return Container(
-                                                      color: Colors.grey[200],
-                                                      child: const Center(child: CircularProgressIndicator()),
-                                                    );
-                                                  },
-                                                  errorBuilder: (context, error, stackTrace) {
-                                                      debugPrint("Ad image failed to load: $error, url: $imageUrl");
-                                                      return Container(
-                                                          color: Colors.grey[200],
-                                                          child: Column(
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: const [
-                                                                  Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                                                                  SizedBox(height: 8),
-                                                                  Text("Failed to load image", style: TextStyle(color: Colors.grey))
-                                                              ]
-                                                          ),
-                                                      );
-                                                  },
+                                                imageUrl!,
+                                                fit: BoxFit.cover,
+                                                loadingBuilder: (context, child,
+                                                    loadingProgress) {
+                                                  if (loadingProgress == null)
+                                                    return child;
+                                                  return Container(
+                                                    color: Colors.black12,
+                                                    child: const Center(
+                                                        child:
+                                                            CircularProgressIndicator()),
+                                                  );
+                                                },
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  debugPrint(
+                                                      "Thumbnail load failed: $imageUrl");
+                                                  return Container(
+                                                    color: Colors.black12,
+                                                    child: const Center(
+                                                      child: Icon(
+                                                          Icons
+                                                              .play_circle_outline,
+                                                          size: 64,
+                                                          color: Colors.white),
+                                                    ),
+                                                  );
+                                                },
                                               )
                                             else
-                                               // Fallback for video with no thumbnail
-                                               Container(
+                                              // Fallback for video with no thumbnail
+                                              Container(
                                                   color: Colors.black12,
-                                                  child: const Icon(Icons.videocam, size: 50, color: Colors.grey)
-                                               ),
-  
+                                                  child: const Icon(
+                                                      Icons.videocam,
+                                                      size: 50,
+                                                      color: Colors.grey)),
                                             if (showPlayButton)
                                               Center(
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.5),
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  padding: const EdgeInsets.all(12),
+                                                  padding:
+                                                      const EdgeInsets.all(12),
                                                   child: const Icon(
                                                     Icons.play_arrow,
                                                     color: Colors.white,
@@ -307,18 +323,21 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                     ),
                                   ),
                                 ),
-                
+
                               // Description (HTML)
-                              if (ad.videoLink == null && ad.description != null && ad.description!.isNotEmpty)
+                              if (ad.videoLink == null &&
+                                  ad.description != null &&
+                                  ad.description!.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 0.0), 
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 0.0),
                                   child: Html(
                                     data: ad.description,
                                     style: {
                                       "body": Style(
                                         margin: Margins.zero,
                                         padding: HtmlPaddings.zero,
-                                        fontFamily: 'Inter', 
+                                        fontFamily: 'Inter',
                                         color: Colors.black87,
                                       ),
                                       "h5": Style(
@@ -328,30 +347,33 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                         color: const Color(0xFF212121),
                                       ),
                                       "p": Style(
-                                         margin: Margins.only(bottom: 8),
-                                         fontSize: FontSize(14),
-                                         color: const Color(0xFF424242),
+                                        margin: Margins.only(bottom: 8),
+                                        fontSize: FontSize(14),
+                                        color: const Color(0xFF424242),
                                       ),
                                     },
                                   ),
                                 ),
-                
-                              if (ad.videoLink == null) const SizedBox(height: 16),
-                
+
+                              if (ad.videoLink == null)
+                                const SizedBox(height: 16),
+
                               // Call To Action Button
                               if (ad.videoLink == null &&
                                   ad.callToActionText != null &&
                                   ad.callToActionText!.isNotEmpty &&
-                                  targetUrl != null && targetUrl.isNotEmpty)
+                                  targetUrl != null &&
+                                  targetUrl.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom: 0.0), 
+                                  padding: const EdgeInsets.only(bottom: 0.0),
                                   child: Center(
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(
                                         side: BorderSide(color: primaryColor),
                                         foregroundColor: primaryColor,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(4.0),
+                                          borderRadius:
+                                              BorderRadius.circular(4.0),
                                         ),
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 32, vertical: 12),
@@ -368,26 +390,22 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                   ),
                                 ),
                             ],
-                           ),
-                         ),
-                       );
-                     },
-                   ),
-                 ),
-               ),
-               
-               if (_ads.length > 1)
-                  const SizedBox(width: 5),
-    
-               if (_ads.length > 1)
-                 _buildArrowButton(
-                   icon: Icons.chevron_right,
-                   onPressed: _nextAd,
-                   primaryColor: primaryColor,
-                 ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (_ads.length > 1) const SizedBox(width: 5),
+              if (_ads.length > 1)
+                _buildArrowButton(
+                  icon: Icons.chevron_right,
+                  onPressed: _nextAd,
+                  primaryColor: primaryColor,
+                ),
             ],
           ),
-          
           if (_ads.length > 1)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
@@ -400,7 +418,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                     margin: const EdgeInsets.symmetric(horizontal: 4.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentIndex == idx 
+                      color: _currentIndex == idx
                           ? primaryColor
                           : Colors.grey.withOpacity(0.5),
                     ),
