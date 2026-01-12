@@ -240,7 +240,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // Image Node (Show if URL exists OR it's a video ad)
-                              if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.videoLink != null && ad.videoLink!.isNotEmpty))
+                              // if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.videoLink != null && ad.videoLink!.isNotEmpty))
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: GestureDetector(
