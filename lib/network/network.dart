@@ -7,6 +7,7 @@ import 'package:prime_video_library/model/models.dart';
 import 'package:prime_video_library/util/constance.dart';
 
 import '../model/consultation_response.dart';
+import '../model/consultation_check_response.dart';
 import '../ui/call_screen.dart';
 import '../ui/test_ads.dart';
 import '../util/progress_dialog.dart';
@@ -28,38 +29,96 @@ class Network {
     if (!permission) {
       return 'PSDK_E_3';
     }
-    if(isProduction) {
+    if (isProduction) {
       return 'Production not configured';
     }
-    ProgressDialog.show(context);
+    if (!isFromWaitingRoom) {
+      ProgressDialog.show(context);
+    }
+
+    // 1. Call consultationCheck
+    ConsultationCheckResponse? checkResponse;
+    try {
+      checkResponse = await consultationCheck(appointmentID, isProduction);
+    } catch (e) {
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      return 'PSDK_E_500'; // Or generic error
+    }
+
+    if (checkResponse == null || checkResponse.data == null) {
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      return 'PSDK_E_2';
+    }
+
+    // 2. Check appointmentStatus
+    if (checkResponse.data?.appointmentStatus != 'ACTIVE') {
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      // Logic for non-active appointment (e.g. show waiting room or error)
+      // Since prompts says "if appointmentStatus IS ACTIVE then...", 
+      // implied else: we might still want to show waiting room if just waiting?
+      // But typically if not active it might be EXPIRED or SCHEDULED.
+      // For now, let's treat as "Not Ready" -> Waiting Room (if that's the desired flow)
+      // OR fail. The user said: "if the appointmentStatus is "ACTIVE" then immediately after call follwing api"
+      // If not active, we probably shouldn't call the next API.
+      // But we need to handle "Join" -> "Wait" flow safely.
+      // Let's assume if NOT Active, we check if we should go to waiting room anyway?
+      // Actually, if it's NOT active, we can't get the token/session presumably.
+      // Let's redirect to waiting room if we can't proceed, effectively polling.
+        if (isFromWaitingRoom) {
+          return 'WAITING';
+        }
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WaitingRoomScreen(
+              appointmentId: appointmentID,
+              isProduction: isProduction,
+              reasonForVisit: '', // Info not available from check response in same format?
+              doctorName: checkResponse.data?.doctorName,
+              appointmentDate: checkResponse.data?.displayDate,
+              appointmentTime: checkResponse.data?.displayTime,
+            ),
+          ),
+        );
+        return 'PSDK_E_2';
+    }
+
+    String? userId = checkResponse.data?.patientId;
+    if (userId == null) {
+       if (!isFromWaitingRoom) ProgressDialog.hide(context);
+       return 'PSDK_E_2';
+    }
+
     DataModel dataModel = await DataModel.create();
-    ConsultationRequestModel consultationRequestModel =
-    ConsultationRequestModel(
-        consultationId: appointmentID,
-        userType: 'Patient',
-        browserTimeZone: 'GMT%2D05:30',
-        currency: 'INR',
-        accessCountry: 'IN',
-        todayRate: '');
-    consultationRequestModel.os = dataModel.os;
-    consultationRequestModel.ipAddress = dataModel.ipAddress;
-    consultationRequestModel.userAgent = dataModel.userAgent;
-    RequestDataModel requestModel = RequestDataModel(
-        token:
-        'fcfb70e15b304a88af137f8a0906e65c0bc7f1d662e6aed146f34c0e975d6756',
-        C2MDVerificationToken: '',
-        requestType: '400',
-        dataModel: consultationRequestModel);
+    
     final baseUrl = isProduction
         ? Constants.PRODUCTIONendPoint
         : Constants.UATendPoint;
     final url = '${baseUrl}consultation';
+
+    final Map<String, dynamic> requestBody = {
+      "data": {
+        "browserTimeZone": "GMT%2B05:30",
+        "userId": userId,
+        "userType": "Patient",
+        "appointmentId": appointmentID,
+        "Ipaddress": dataModel.ipAddress,
+        "Os": dataModel.os,
+        "useragent": dataModel.userAgent 
+      },
+      "requestType": "201",
+      "token": "d0e51850f7406e07e769addae636997621894720df8375d83bde6e582c0f8686"
+    };
+
     final response = await http.post(Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: json.encode(requestModel.toJson()));
-    ProgressDialog.hide(context);
+        body: json.encode(requestBody));
+
+    if (!isFromWaitingRoom) {
+      ProgressDialog.hide(context);
+    }
 
     if (response.statusCode == 200) {
       ConsultationResponse consultationResponse =
@@ -123,4 +182,40 @@ class Network {
       return 'PSDK_E_408';
     }
   }
+
+  Future<ConsultationCheckResponse?> consultationCheck(
+      String appointmentID, bool isProduction) async {
+    final baseUrl = isProduction
+        ? Constants.PRODUCTIONendPoint
+        : Constants.UATendPoint;
+    final url = '${baseUrl}consultationcheck';
+
+    final Map<String, dynamic> body = {
+      "token": "d0e51850f7406e07e769addae636997621894720df8375d83bde6e582c0f8686",
+      "version": "2.0",
+      "data": {
+        "browserTimeZone": "GMT%2B05:30",
+        "token": appointmentID
+      },
+      "requestType": 1077
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        return ConsultationCheckResponse.fromJson(json.decode(response.body));
+      }
+    } catch (e) {
+      debugPrint("consultationCheck error: $e");
+    }
+    return null;
+  }
+
 }

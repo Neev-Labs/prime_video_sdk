@@ -91,7 +91,7 @@ class ConsultationResponseData {
     todayRate = json['todayRate'];
     patientName = json['patientName'];
     doctorName = json['doctorName'];
-    tokenId = json['tokenId'];
+    tokenId = json['tokenId'] ?? json['patientToken'];
     cliniclogo = json['cliniclogo'];
     doctorDetails = json['doctorDetails'] != null
         ? new DoctorDetails.fromJson(json['doctorDetails'])
