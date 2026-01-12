@@ -73,10 +73,10 @@ class Network {
             builder: (context) => WaitingRoomScreen(
               appointmentId: appointmentID,
               isProduction: isProduction,
-              reasonForVisit: '', // Info not available from check response in same format?
-              doctorName: checkResponse.data?.doctorName,
-              appointmentDate: checkResponse.data?.displayDate,
-              appointmentTime: checkResponse.data?.displayTime,
+              reasonForVisit: '', 
+              doctorName: checkResponse?.data?.doctorName,
+              appointmentDate: checkResponse?.data?.displayDate,
+              appointmentTime: checkResponse?.data?.displayTime,
             ),
           ),
         );
