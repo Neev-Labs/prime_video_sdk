@@ -41,29 +41,39 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
     _startTimer();
     _startPolling();
     _fetchPatientDetails();
-    _fetchAds();
-  }
-
-  Future<void> _fetchAds() async {
-    final response = await Network().getAds(widget.isProduction);
-    if (response != null && response['data'] != null && response['data']['ads'] != null) {
-      String? globalType = response['data']['type'];
-      List<dynamic> adsList = response['data']['ads'];
-
-      // Inject type if missing in individual ad object
-      if (globalType != null) {
-        for (var ad in adsList) {
-          if (ad is Map) {
-             ad['type'] = globalType;
-          }
+    
+    // Reverted to hardcoded data
+    String adsJson = '''
+    {
+        "data": {
+            "type": "Online video",
+            "clinicId": "144",
+            "ads": [
+                {
+                    "videoLink": "https://www.youtube.com/watch?v=VkJX6EPGq18"
+                },
+                {
+                    "videoLink": "https://www.youtube.com/watch?v=hZddEEmyu-o"
+                }
+            ]
         }
-      }
-
-      if (mounted) {
+    }
+    ''';
+    
+    final parsed = json.decode(adsJson);
+    if (parsed['data'] != null && parsed['data']['ads'] != null) {
+        String? globalType = parsed['data']['type'];
+        List<dynamic> adsList = parsed['data']['ads'];
+         if (globalType != null) {
+            for (var ad in adsList) {
+              if (ad is Map) {
+                 ad['type'] = globalType;
+              }
+            }
+         }
         setState(() {
-          _ads = adsList;
+            _ads = adsList;
         });
-      }
     }
   }
 

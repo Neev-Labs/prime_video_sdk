@@ -218,40 +218,5 @@ class Network {
     return null;
   }
 
-  Future<Map<String, dynamic>?> getAds(bool isProduction) async {
-    final baseUrl = isProduction
-        ? Constants.PRODUCTIONendPoint
-        : Constants.UATendPoint;
-    final url = '${baseUrl}getads';
-
-    final Map<String, dynamic> body = {
-      "token": "d0e51850f7406e07e769addae636997621894720df8375d83bde6e582c0f8686",
-      "data": {
-        "clinicId": "144" 
-      },
-      "requestType": 0
-    };
-
-    debugPrint('API Request: $url');
-    debugPrint('Request Body: ${json.encode(body)}');
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(body),
-      );
-
-      debugPrint('API Response [${response.statusCode}]: ${response.body}');
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-    } catch (e) {
-      debugPrint("getAds error: $e");
-    }
-    return null;
-  }
+  // getAds removed
 }
