@@ -253,7 +253,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                           alignment: Alignment.center,
                                           fit: StackFit.expand, // Force children to fill
                                           children: [
-                                            if (imageUrl != null && imageUrl.isNotEmpty)
+                                            // if (imageUrl != null && imageUrl.isNotEmpty)
                                               Image.network(
                                                   imageUrl,
                                                   fit: BoxFit.cover, // Cover the area
