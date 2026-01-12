@@ -44,20 +44,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
     
     // Reverted to hardcoded data
     String adsJson = '''
-    {
-        "data": {
-            "type": "Online video",
-            "clinicId": "144",
-            "ads": [
-                {
-                    "videoLink": "https://www.youtube.com/watch?v=VkJX6EPGq18"
-                },
-                {
-                    "videoLink": "https://www.youtube.com/watch?v=hZddEEmyu-o"
-                }
-            ]
-        }
-    }
+    {"request":1,"errorType":"Success","data":{"type":"An image and description","ads":[{"videoLink":null,"image":"https://www.caritashospital.org/static/img/video-consultation-banner.jpg","description":"<h5 style=\"margin:0 0 6px 0;\">Caritas Video Consultation</h5><p>Your health journey matters. With our Video Consultation service, meet your doctor from anywhere.</p><ul><li>Fast and secure</li><li>Trusted by thousands</li><li>24/7 availability</li></ul>","callToActionText":"Learn More","clickthroughUrl":"https://www.caritashospital.org/video-consultation/"},{"videoLink":null,"image":"https://www.caritashospital.org/static/media/images/drone-banner.jpeg","description":"<h5 style=\"margin:0 0 6px 0;\">Drone Delivery Unit</h5><p><em>South Kerala’s first</em> drone-based medical delivery system.<br/>Delivering medicines and samples in <strong>record time</strong>.</p><p style=\"color:#0060d6; font-weight:600;\">Powered by Caritas Hospital</p>","callToActionText":"Click Here","clickthroughUrl":"https://www.caritashospital.org/caritas-social-responsibility/caritas-hospital-introduced-south-keralas-first-drone-based-medical-deliveries-unit"},{"videoLink":null,"image":"https://caritascollege.edu.in/wp-content/uploads/2021/08/Admission-B.Pharm-2021.jpeg","description":"<h5 style=\"margin:0 0 6px 0;\">B.Pharm Admission 2025</h5><p>The online application is now <strong>open</strong>.</p><p>Last date: <span style=\"color:red;\">06/09/2025</span></p><ol><li>Register online</li><li>Upload your documents</li><li>Submit application</li></ol>","callToActionText":"Apply Now","clickthroughUrl":"https://caritascollege.edu.in/b-pharm-admission-2021/"}]},"status":200}
     ''';
     
     final parsed = json.decode(adsJson);
