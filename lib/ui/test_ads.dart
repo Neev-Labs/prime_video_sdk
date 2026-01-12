@@ -239,7 +239,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text("Waiting Room -",
                                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                               ),
