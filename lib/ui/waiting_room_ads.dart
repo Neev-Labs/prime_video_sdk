@@ -46,7 +46,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   List<Ad> _ads = [];
   final PageController _pageController = PageController();
   List<double> _heights = [];
-  double _currentHeight = 200; // Default estimate
+  double _currentHeight = 300; // Default estimate
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
       setState(() {
          // UI update triggered by _parseAds changing _ads
          _currentIndex = 0; // Reset to first ad? Or keep index if possible. Reset is safer if list changes completely.
-         _currentHeight = _heights.isNotEmpty ? _heights[0] : 200;
+         _currentHeight = 300; // Force 300 for testing
       });
     }
   }
@@ -75,7 +75,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
 
   void _parseAds() {
     _ads = widget.adsData.map((e) => Ad.fromJson(e)).toList();
-    _heights = List.filled(_ads.length, 200.0);
+    _heights = List.filled(_ads.length, 300.0);
   }
 
   void _prevAd() {
@@ -240,7 +240,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // Image Node (Show if URL exists OR it's a video ad)
-                              if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.type == 'Online video'))
+                              if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.videoLink != null && ad.videoLink!.isNotEmpty))
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: GestureDetector(
