@@ -95,11 +95,20 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
 
   Future<void> _launchUrl(String? url) async {
     if (url != null && url.isNotEmpty) {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        debugPrint("Could not launch $url");
+      String urlString = url.trim();
+      if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+        urlString = 'https://$urlString';
+      }
+      final uri = Uri.parse(urlString);
+      try {
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+           // Fallback to platform default if external launch fails or isn't supported
+           if (!await launchUrl(uri)) {
+             debugPrint("Could not launch $urlString");
+           }
+        }
+      } catch (e) {
+        debugPrint("Error launching url: $e");
       }
     }
   }
