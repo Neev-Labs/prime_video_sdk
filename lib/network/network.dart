@@ -22,7 +22,8 @@ class Network {
   }
 
   Future<String> joinConsultation(
-      BuildContext context, String appointmentID, bool isProduction) async {
+      BuildContext context, String appointmentID, bool isProduction,
+      {bool isFromWaitingRoom = false}) async {
     var permission = await checkCameraPermission();
     if (!permission) {
       return 'PSDK_E_3';
@@ -67,10 +68,20 @@ class Network {
       if (consultationResponse.data?.doctorScreenstatus == null ||
           consultationResponse.data?.doctorScreenstatus !=
               'In Consultation Screen') {
+        if (isFromWaitingRoom) {
+          return 'WAITING';
+        }
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const WaitingRoomScreen(),
+            builder: (context) => WaitingRoomScreen(
+              appointmentId: appointmentID,
+              isProduction: isProduction,
+              reasonForVisit: consultationResponse.data?.reasonforvisit,
+              doctorName: consultationResponse.data?.doctorName,
+              appointmentDate: consultationResponse.data?.appointmentDate,
+              appointmentTime: consultationResponse.data?.appointmentTime,
+            ),
           ),
         );
         return 'PSDK_E_2';
@@ -79,22 +90,22 @@ class Network {
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
           !(consultationResponse.data?.tokenId?.isEmpty ?? false) &&
           !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CallScreen(
-              callArguments: CallArguments(
-                consultationResponse.data!.sessionId!,
-                consultationResponse.data!.tokenId!,
-                '',
-                '',
-                '40',
-                '',
-                true,
-              ),
+        final route = MaterialPageRoute(
+          builder: (context) => CallScreen(
+            callArguments: CallArguments(
+              consultationResponse.data!.sessionId!,
+              consultationResponse.data!.tokenId!,
+              '',
+              '',
+              '40',
+              '',
+              true,
             ),
           ),
         );
+        final result = isFromWaitingRoom
+            ? await Navigator.pushReplacement(context, route)
+            : await Navigator.push(context, route);
         if (result != null) {
           return 'PSDK_1';
         } else {

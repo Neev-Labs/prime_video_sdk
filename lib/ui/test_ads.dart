@@ -3,9 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:integrated_project/ui/waiting_room_ads.dart';
 import 'dart:convert';
 import 'dart:async';
+import '../network/network.dart';
 
 class WaitingRoomScreen extends StatefulWidget {
-  const WaitingRoomScreen({super.key});
+  final String appointmentId;
+  final bool isProduction;
+  final String? reasonForVisit;
+  final String? doctorName;
+  final String? appointmentDate;
+  final String? appointmentTime;
+
+  const WaitingRoomScreen({
+    super.key,
+    required this.appointmentId,
+    required this.isProduction,
+    this.reasonForVisit,
+    this.doctorName,
+    this.appointmentDate,
+    this.appointmentTime,
+  });
 
   @override
   State<WaitingRoomScreen> createState() => _WaitingRoomScreenState();
@@ -47,12 +63,25 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   ''';
 
   late Timer _timer;
+  Timer? _pollingTimer;
   int _secondsRemaining = 300; // 5:00 in seconds
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _startPolling();
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
+      await Network().joinConsultation(
+        context,
+        widget.appointmentId,
+        widget.isProduction,
+        isFromWaitingRoom: true,
+      );
+    });
   }
 
   void _startTimer() {
@@ -163,6 +192,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _pollingTimer?.cancel();
     super.dispose();
   }
 
@@ -214,7 +244,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                               ),
                               SizedBox(height: 4),
-                              Text("Appointment ID: 29793212",
+                              Text("Appointment ID: ${widget.appointmentId}",
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                             ],
@@ -255,15 +285,15 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                           const SizedBox(height: 24),
 
                           // Doctor Info
-                          const Text(
-                            "First time consultation with Dr. Vps Doctor",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          Text(
+                            "${widget.reasonForVisit ?? "First time consultation"} with ${widget.doctorName ?? "Dr. Vps Doctor"}",
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            "Scheduled: 12-Jan-2026, 10:05 AM",
-                            style: TextStyle(color: Colors.grey),
+                          Text(
+                            "Scheduled: ${widget.appointmentDate ?? "12-Jan-2026"}, ${widget.appointmentTime ?? "10:05 AM"}",
+                            style: const TextStyle(color: Colors.grey),
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(height: 24),
