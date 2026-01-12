@@ -1,21 +1,12 @@
 import 'package:lottie/lottie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:integrated_project/ui/waiting_room_ads.dart';
 import 'dart:convert';
 import 'dart:async';
-import '../features/consultation/presentation/providers/consultation_provider.dart';
-import '../network/network.dart'; // Keep for checkCameraPermission if needed or move logic
-// We should ideally move permission logic to a provider/service.
-import '../ui/call_screen.dart';
-import '../ui/test_ads.dart'; // Self import? Remove if not needed.
-import '../ui/video_call.dart'; 
-import '../model/consultation_response.dart';
+import '../network/network.dart';
+import '../model/consultation_check_response.dart';
 
-// Ensure the user of this library wraps their app in ProviderScope, 
-// or wrap this widget if it's the root of the sdk flow (but checking permission usually happens before).
-
-class WaitingRoomScreen extends ConsumerStatefulWidget {
+class WaitingRoomScreen extends StatefulWidget {
   final String appointmentId;
   final bool isProduction;
   final String? reasonForVisit;
@@ -34,10 +25,10 @@ class WaitingRoomScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<WaitingRoomScreen> createState() => _WaitingRoomScreenState();
+  State<WaitingRoomScreen> createState() => _WaitingRoomScreenState();
 }
 
-class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
+class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   final String jsonString = '''
   {
       "request":1,
@@ -75,23 +66,38 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
   late Timer _timer;
   Timer? _pollingTimer;
   int _secondsRemaining = 300; // 5:00 in seconds
+  String? _patientId;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
     _startPolling();
-    // Initial fetch for patient details (and polling covers status)
-    // Actually polling calls joinProcess which does both.
-    // We can call it ONCE immediately.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-       ref.read(consultationProvider.notifier).joinProcess(widget.appointmentId, widget.isProduction);
-    });
+    _fetchPatientDetails();
+  }
+
+  Future<void> _fetchPatientDetails() async {
+    final response = await Network().consultationCheck(
+      widget.appointmentId,
+      widget.isProduction,
+    );
+    if (response != null && response.data?.patientId != null) {
+      if (mounted) {
+        setState(() {
+          _patientId = response.data!.patientId;
+        });
+      }
+    }
   }
 
   void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-       ref.read(consultationProvider.notifier).joinProcess(widget.appointmentId, widget.isProduction);
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
+      await Network().joinConsultation(
+        context,
+        widget.appointmentId,
+        widget.isProduction,
+        isFromWaitingRoom: true,
+      );
     });
   }
 
@@ -215,40 +221,6 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
-    // Listen to state changes for navigation
-    ref.listen<ConsultationState>(consultationProvider, (previous, next) {
-      if (next.status == 'JOINED' && next.consultationResponse != null) {
-        // Stop polling?
-        _pollingTimer?.cancel();
-        
-        final data = next.consultationResponse!.data!;
-        // Navigate
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CallScreen(
-              callArguments: CallArguments(
-                data.sessionId!,
-                data.tokenId!, // handled mapping in model
-                '',
-                '',
-                '40',
-                '',
-                true,
-              ),
-            ),
-          ),
-        );
-      }
-    });
-
-    final state = ref.watch(consultationProvider);
-    final patientId = state.checkResponse?.data?.patientId;
-    // Update local variables from API display if needed, but we rely on widget params or state.
-    // The previous implementation updated specific fields.
-    // We can use state.checkResponse values.
-
     final Map<String, dynamic> jsonData = json.decode(jsonString);
     final List<dynamic> ads = jsonData['data']['ads'];
     final primaryColor = const Color(0xFF673AB7); 
@@ -285,15 +257,15 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("Waiting Room -",
+                              Text("Waiting Room -",
                                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text("Appointment ID: ${widget.appointmentId}",
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               ),
-                              if (patientId != null)
-                                Text("Patient ID: $patientId",
+                              if (_patientId != null)
+                                Text("Patient ID: $_patientId",
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                             ],
@@ -335,13 +307,13 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
 
                           // Doctor Info
                           Text(
-                            "${widget.reasonForVisit ?? state.checkResponse?.data?.appointmentType ?? "First time consultation"} with ${widget.doctorName ?? state.checkResponse?.data?.doctorName ?? "Dr. Vps Doctor"}",
+                            "${widget.reasonForVisit ?? "First time consultation"} with ${widget.doctorName ?? "Dr. Vps Doctor"}",
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "Scheduled: ${widget.appointmentDate ?? state.checkResponse?.data?.displayDate ?? "12-Jan-2026"}, ${widget.appointmentTime ?? state.checkResponse?.data?.displayTime ?? "10:05 AM"}",
+                            "Scheduled: ${widget.appointmentDate ?? "12-Jan-2026"}, ${widget.appointmentTime ?? "10:05 AM"}",
                             style: const TextStyle(color: Colors.grey),
                             textAlign: TextAlign.start,
                           ),
@@ -409,5 +381,3 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
     ));
   }
 }
-
-
