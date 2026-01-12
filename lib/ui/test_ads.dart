@@ -253,11 +253,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                               SizedBox(height: 4),
                               Text("Appointment ID: ${widget.appointmentId}",
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              if (_patientId != null)
-                                Text("Patient ID: $_patientId",
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
+                              )
                             ],
                           ),
                           Column(

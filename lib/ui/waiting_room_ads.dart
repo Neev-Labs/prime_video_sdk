@@ -247,63 +247,62 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                     onTap: () => _launchUrl(targetUrl),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          if (imageUrl != null && imageUrl.isNotEmpty)
-                                            Image.network(
-                                                imageUrl,
-                                                fit: BoxFit.fitWidth,
-                                                width: double.infinity, // Ensure full width
-                                                loadingBuilder: (context, child, loadingProgress) {
-                                                  if (loadingProgress == null) return child;
-                                                  return Container(
-                                                    height: 200,
-                                                    width: double.infinity,
-                                                    color: Colors.grey[200],
-                                                    child: const Center(child: CircularProgressIndicator()),
-                                                  );
-                                                },
-                                                errorBuilder: (context, error, stackTrace) {
-                                                    debugPrint("Ad image failed to load: $error, url: $imageUrl");
+                                      child: SizedBox(
+                                        height: 200, // Force height
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          fit: StackFit.expand, // Force children to fill
+                                          children: [
+                                            if (imageUrl != null && imageUrl.isNotEmpty)
+                                              Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover, // Cover the area
+                                                  loadingBuilder: (context, child, loadingProgress) {
+                                                    if (loadingProgress == null) return child;
                                                     return Container(
-                                                        height: 200,
-                                                        width: double.infinity,
-                                                        color: Colors.grey[200],
-                                                        child: const Column(
-                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                            children: [
-                                                                Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                                                                SizedBox(height: 8),
-                                                                Text("Failed to load image", style: TextStyle(color: Colors.grey))
-                                                            ]
-                                                        ),
+                                                      color: Colors.grey[200],
+                                                      child: const Center(child: CircularProgressIndicator()),
                                                     );
-                                                },
-                                            )
-                                          else
-                                             // Fallback for video with no thumbnail
-                                             Container(
-                                                height: 200,
-                                                width: double.infinity,
-                                                color: Colors.black12,
-                                                child: const Icon(Icons.videocam, size: 50, color: Colors.grey)
-                                             ),
-
-                                          if (showPlayButton)
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.5),
-                                                shape: BoxShape.circle,
+                                                  },
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                      debugPrint("Ad image failed to load: $error, url: $imageUrl");
+                                                      return Container(
+                                                          color: Colors.grey[200],
+                                                          child: Column(
+                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              children: const [
+                                                                  Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                                                  SizedBox(height: 8),
+                                                                  Text("Failed to load image", style: TextStyle(color: Colors.grey))
+                                                              ]
+                                                          ),
+                                                      );
+                                                  },
+                                              )
+                                            else
+                                               // Fallback for video with no thumbnail
+                                               Container(
+                                                  color: Colors.black12,
+                                                  child: const Icon(Icons.videocam, size: 50, color: Colors.grey)
+                                               ),
+  
+                                            if (showPlayButton)
+                                              Center(
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.5),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  padding: const EdgeInsets.all(12),
+                                                  child: const Icon(
+                                                    Icons.play_arrow,
+                                                    color: Colors.white,
+                                                    size: 32,
+                                                  ),
+                                                ),
                                               ),
-                                              padding: const EdgeInsets.all(12),
-                                              child: const Icon(
-                                                Icons.play_arrow,
-                                                color: Colors.white,
-                                                size: 32,
-                                              ),
-                                            ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
