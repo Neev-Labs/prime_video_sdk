@@ -239,8 +239,8 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Image Node
-                              if (imageUrl != null && imageUrl.isNotEmpty)
+                              // Image Node (Show if URL exists OR it's a video ad)
+                              if ((imageUrl != null && imageUrl.isNotEmpty) || (ad.type == 'Online video'))
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: GestureDetector(
@@ -250,24 +250,46 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                       child: Stack(
                                         alignment: Alignment.center,
                                         children: [
-                                          Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.fitWidth, 
-                                            loadingBuilder: (context, child, loadingProgress) {
-                                              if (loadingProgress == null) return child;
-                                              return Container(
-                                                height: 200, 
-                                                color: Colors.grey[200],
-                                                child: const Center(child: CircularProgressIndicator()),
-                                              );
-                                            },
-                                            errorBuilder: (context, error, stackTrace) {
-                                                debugPrint("Ad image failed to load: $error, url: $imageUrl");
-                                                return const Center(
-                                                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                                                );
-                                            },
-                                          ),
+                                          if (imageUrl != null && imageUrl.isNotEmpty)
+                                            Image.network(
+                                                imageUrl,
+                                                fit: BoxFit.fitWidth,
+                                                width: double.infinity, // Ensure full width
+                                                loadingBuilder: (context, child, loadingProgress) {
+                                                  if (loadingProgress == null) return child;
+                                                  return Container(
+                                                    height: 200,
+                                                    width: double.infinity,
+                                                    color: Colors.grey[200],
+                                                    child: const Center(child: CircularProgressIndicator()),
+                                                  );
+                                                },
+                                                errorBuilder: (context, error, stackTrace) {
+                                                    debugPrint("Ad image failed to load: $error, url: $imageUrl");
+                                                    return Container(
+                                                        height: 200,
+                                                        width: double.infinity,
+                                                        color: Colors.grey[200],
+                                                        child: const Column(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                                Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                                                SizedBox(height: 8),
+                                                                Text("Failed to load image", style: TextStyle(color: Colors.grey))
+                                                            ]
+                                                        ),
+                                                    );
+                                                },
+                                            )
+                                          else
+                                             // Fallback for video with no thumbnail
+                                             Container(
+                                                height: 200,
+                                                width: double.infinity,
+                                                color: Colors.black12,
+                                                child: const Icon(Icons.videocam, size: 50, color: Colors.grey)
+                                             ),
+
                                           if (showPlayButton)
                                             Container(
                                               decoration: BoxDecoration(

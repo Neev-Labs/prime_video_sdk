@@ -212,6 +212,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("WaitingRoomScreen build: ads count=${_ads.length}");
     final primaryColor = const Color(0xFF673AB7); 
 
     return Scaffold(
@@ -356,7 +357,11 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                           const SizedBox(height: 16),
 
                            // Ads Component (Inside the padding)
-                           WaitingRoomAds(adsData: _ads),
+                           // Ads Component (Inside the padding)
+                           WaitingRoomAds(
+                             key: ValueKey(_ads.length), // Force rebuild if ad count changes
+                             adsData: _ads
+                           ),
                         ],
                       ),
                     ),
