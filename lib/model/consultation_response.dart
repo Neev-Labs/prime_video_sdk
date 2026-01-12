@@ -47,6 +47,7 @@ class ConsultationResponseData {
   DoctorDetails? doctorDetails;
   String? doctorStatus;
   String? patientStatus;
+  String? doctorScreenstatus;
 
   ConsultationResponseData(
       {this.apiKey,
@@ -69,7 +70,9 @@ class ConsultationResponseData {
         this.cliniclogo,
         this.doctorDetails,
         this.doctorStatus,
-        this.patientStatus});
+        this.patientStatus,
+        this.doctorScreenstatus,
+      });
 
   ConsultationResponseData.fromJson(Map<String, dynamic> json) {
     apiKey = json['apiKey'];
@@ -95,6 +98,7 @@ class ConsultationResponseData {
         : null;
     doctorStatus = json['doctorStatus'];
     patientStatus = json['patientStatus'];
+    doctorScreenstatus = json['doctorScreenstatus'];
   }
 
   Map<String, dynamic> toJson() {
@@ -122,6 +126,7 @@ class ConsultationResponseData {
     }
     data['doctorStatus'] = this.doctorStatus;
     data['patientStatus'] = this.patientStatus;
+    data['doctorScreenstatus'] = this.doctorScreenstatus;
     return data;
   }
 }

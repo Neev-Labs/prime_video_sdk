@@ -8,6 +8,7 @@ import 'package:prime_video_library/util/constance.dart';
 
 import '../model/consultation_response.dart';
 import '../ui/call_screen.dart';
+import '../ui/test_ads.dart';
 import '../util/progress_dialog.dart';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -61,7 +62,20 @@ class Network {
 
     if (response.statusCode == 200) {
       ConsultationResponse consultationResponse =
-      ConsultationResponse.fromJson(json.decode(response.body));
+          ConsultationResponse.fromJson(json.decode(response.body));
+
+      if (consultationResponse.data?.doctorScreenstatus == null ||
+          consultationResponse.data?.doctorScreenstatus !=
+              'In Consultation Screen') {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const WaitingRoomScreen(),
+          ),
+        );
+        return 'PSDK_E_2';
+      }
+
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
           !(consultationResponse.data?.tokenId?.isEmpty ?? false) &&
           !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
