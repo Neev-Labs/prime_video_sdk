@@ -106,6 +106,29 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
   }
 
   String? _getYoutubeVideoId(String url) {
+    if (url.isEmpty) return null;
+    
+    try {
+      final uri = Uri.parse(url);
+      // Handle youtube.com/watch?v=VIDEO_ID
+      if (uri.host.contains('youtube.com') && uri.queryParameters.containsKey('v')) {
+        return uri.queryParameters['v'];
+      }
+      
+      // Handle youtu.be/VIDEO_ID
+      if (uri.host.contains('youtu.be') && uri.pathSegments.isNotEmpty) {
+        return uri.pathSegments.first;
+      }
+      // Handle youtube.com/embed/VIDEO_ID
+      if (uri.host.contains('youtube.com') && uri.pathSegments.contains('embed')) {
+          final index = uri.pathSegments.indexOf('embed');
+          if (index + 1 < uri.pathSegments.length) {
+              return uri.pathSegments[index + 1];
+          }
+      }
+    } catch (_) {}
+
+    // Fallback Regex
     RegExp regExp = RegExp(
       r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})',
       caseSensitive: false,

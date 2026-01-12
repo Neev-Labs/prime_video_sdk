@@ -47,9 +47,21 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   Future<void> _fetchAds() async {
     final response = await Network().getAds(widget.isProduction);
     if (response != null && response['data'] != null && response['data']['ads'] != null) {
+      String? globalType = response['data']['type'];
+      List<dynamic> adsList = response['data']['ads'];
+
+      // Inject type if missing in individual ad object
+      if (globalType != null) {
+        for (var ad in adsList) {
+          if (ad is Map) {
+             ad['type'] = globalType;
+          }
+        }
+      }
+
       if (mounted) {
         setState(() {
-          _ads = response['data']['ads'];
+          _ads = adsList;
         });
       }
     }
