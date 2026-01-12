@@ -245,7 +245,7 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                 ),
                 
                               // Description (HTML)
-                              if (ad.description != null && ad.description!.isNotEmpty)
+                              if (ad.videoLink == null && ad.description != null && ad.description!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 0.0), 
                                   child: Html(
@@ -272,10 +272,11 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                                   ),
                                 ),
                 
-                              const SizedBox(height: 16),
+                              if (ad.videoLink == null) const SizedBox(height: 16),
                 
                               // Call To Action Button
-                              if (ad.callToActionText != null &&
+                              if (ad.videoLink == null &&
+                                  ad.callToActionText != null &&
                                   ad.callToActionText!.isNotEmpty &&
                                   targetUrl != null && targetUrl.isNotEmpty)
                                 Padding(
