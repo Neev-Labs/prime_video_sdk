@@ -243,6 +243,10 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
+                              Image.network(
+                                'https://img.youtube.com/vi/VkJX6EPGq18/hqdefault.jpg',
+                              ),
+
                               // Image Node (Show if URL exists OR it's a video ad)
                               if (ad.videoLink != null &&
                                       ad.videoLink!.isNotEmpty ||
