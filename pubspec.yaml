@@ -1,6 +1,6 @@
 name: prime_video_library
 description: "Prime Video SDK"
-version: 0.0.46
+version: 0.0.47
 homepage: "https://github.com/Neev-Labs/prime_video_sdk"
 repository: "https://github.com/Neev-Labs/prime_video_sdk"
 
@@ -11,6 +11,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_zoom_videosdk: ^2.4.0
+  http: ^1.2.2
+  device_info_plus: ^11.2.0
+  permission_handler: ^11.3.1
+  wakelock_plus: ^1.2.11
+  url_launcher: ^6.3.0
+  flutter_html: ^3.0.0
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -18,11 +26,6 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
-  flutter_zoom_videosdk: ^2.4.0
-  http: ^1.2.2
-  device_info_plus: ^11.2.0
-  permission_handler: ^11.3.1
-  wakelock_plus: ^1.2.11
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

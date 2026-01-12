@@ -102,13 +102,20 @@ class _WaitingRoomAdsState extends State<WaitingRoomAds> {
       final uri = Uri.parse(urlString);
       try {
         if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-           // Fallback to platform default if external launch fails or isn't supported
-           if (!await launchUrl(uri)) {
-             debugPrint("Could not launch $urlString");
-           }
+            // Fallback to platform default
+            if (!await launchUrl(uri)) {
+               debugPrint("Could not launch $urlString");
+            }
         }
       } catch (e) {
-        debugPrint("Error launching url: $e");
+        // Fallback to platform default on error
+        try {
+          if (!await launchUrl(uri)) {
+             debugPrint("Could not launch $urlString. Error: $e");
+          }
+        } catch (e2) {
+           debugPrint("Could not launch $urlString. Error: $e2");
+        }
       }
     }
   }
