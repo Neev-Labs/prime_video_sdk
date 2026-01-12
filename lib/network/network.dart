@@ -110,6 +110,9 @@ class Network {
       "token": "d0e51850f7406e07e769addae636997621894720df8375d83bde6e582c0f8686"
     };
 
+    debugPrint('API Request: $url');
+    debugPrint('Request Body: ${json.encode(requestBody)}');
+
     final response = await http.post(Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -119,8 +122,59 @@ class Network {
     if (!isFromWaitingRoom) {
       ProgressDialog.hide(context);
     }
+    
+    debugPrint('API Response [${response.statusCode}]: ${response.body}');
 
     if (response.statusCode == 200) {
+      // ... existing code ...
+    }
+
+  // in consultationCheck
+  Future<ConsultationCheckResponse?> consultationCheck(
+      String appointmentID, bool isProduction) async {
+    // ... url setup ...
+    final url = '${baseUrl}consultationcheck';
+    // ... body setup ...
+
+    debugPrint('API Request: $url');
+    debugPrint('Request Body: ${json.encode(body)}');
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json.encode(body),
+      );
+      
+      debugPrint('API Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+    // ...
+
+  // in getAds
+  Future<Map<String, dynamic>?> getAds(bool isProduction) async {
+    // ... url setup ...
+    final url = '${baseUrl}getads';
+    // ... body setup ...
+
+    debugPrint('API Request: $url');
+    debugPrint('Request Body: ${json.encode(body)}');
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json.encode(body),
+      );
+
+      debugPrint('API Response [${response.statusCode}]: ${response.body}');
+
+      if (response.statusCode == 200) {
+    // ...
       ConsultationResponse consultationResponse =
           ConsultationResponse.fromJson(json.decode(response.body));
 
@@ -200,6 +254,10 @@ class Network {
       "requestType": 1077
     };
 
+    // ... inside consultationCheck
+    debugPrint('API Request: $url');
+    debugPrint('Request Body: ${json.encode(body)}');
+
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -208,6 +266,8 @@ class Network {
         },
         body: json.encode(body),
       );
+      
+      debugPrint('API Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         return ConsultationCheckResponse.fromJson(json.decode(response.body));
@@ -215,9 +275,8 @@ class Network {
     } catch (e) {
       debugPrint("consultationCheck error: $e");
     }
-    return null;
-  }
 
+  // ... inside getAds
   Future<Map<String, dynamic>?> getAds(bool isProduction) async {
     final baseUrl = isProduction
         ? Constants.PRODUCTIONendPoint
@@ -232,6 +291,9 @@ class Network {
       "requestType": 0
     };
 
+    debugPrint('API Request: $url');
+    debugPrint('Request Body: ${json.encode(body)}');
+
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -240,6 +302,8 @@ class Network {
         },
         body: json.encode(body),
       );
+
+      debugPrint('API Response [${response.statusCode}]: ${response.body}');
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
