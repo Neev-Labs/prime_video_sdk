@@ -48,36 +48,19 @@ class Network {
 
     if (checkResponse == null || checkResponse.data == null) {
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
-      return 'PSDK_E_2';
+      return 'PSDK_E_5';
     }
 
     // 2. Check appointmentStatus
     if (checkResponse.data?.appointmentStatus != 'ACTIVE') {
-      if (!isFromWaitingRoom) ProgressDialog.hide(context);
-    
-        if (isFromWaitingRoom) {
-          return 'WAITING';
-        }
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WaitingRoomScreen(
-              appointmentId: appointmentID,
-              isProduction: isProduction,
-              reasonForVisit: '', 
-              doctorName: checkResponse?.data?.doctorName,
-              appointmentDate: checkResponse?.data?.displayDate,
-              appointmentTime: checkResponse?.data?.displayTime,
-            ),
-          ),
-        );
-         return 'PSDK_E_2';
+
+         return 'PSDK_E_4';
     }
 
     String? userId = checkResponse.data?.patientId;
     if (userId == null) {
        if (!isFromWaitingRoom) ProgressDialog.hide(context);
-       return 'PSDK_E_2';
+       return 'PSDK_E_6';
     }
 
     DataModel dataModel = await DataModel.create();
@@ -143,7 +126,6 @@ class Network {
             ),
           ),
         );
-         return 'PSDK_E_2';
       }
 
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
