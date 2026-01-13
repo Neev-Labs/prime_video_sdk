@@ -48,13 +48,19 @@ class Network {
 
     if (checkResponse == null || checkResponse.data == null) {
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
-      return 'PSDK_E_5';
+      return 'PSDK_E_6';
     }
 
     // 2. Check appointmentStatus
     if (checkResponse.data?.appointmentStatus != 'ACTIVE') {
 
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
          return 'PSDK_E_4';
+    }
+    if (checkResponse.data?.appointmentStatus != 'TODAY_UPCOMING') {
+
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+         return 'PSDK_E_5';
     }
 
     String? userId = checkResponse.data?.patientId;
