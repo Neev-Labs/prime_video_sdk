@@ -52,12 +52,12 @@ class Network {
     }
 
     // 2. Check appointmentStatus
-    if (checkResponse.data?.appointmentStatus != 'ACTIVE') {
+    if (checkResponse.data?.appointmentStatus == 'EXPIRED') {
 
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
          return 'PSDK_E_4';
     }
-    if (checkResponse.data?.appointmentStatus != 'TODAY_UPCOMING') {
+    if (checkResponse.data?.appointmentStatus == 'TODAY_UPCOMING') {
 
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
          return 'PSDK_E_5';
