@@ -271,6 +271,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Column(
@@ -278,14 +279,10 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                               children: [
                                 Text("Waiting Room -",
                                   style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                                 SizedBox(height: 4),
                                 Text("Appointment ID: ${widget.appointmentId}",
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 )
                               ],
                             ),
@@ -297,12 +294,12 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                               children: [
                                 const Text("Estimated wait time 5",
                                   style: TextStyle(color: Colors.grey),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                  textAlign: TextAlign.end,
                                 ),
                                 const SizedBox(height: 4),
                                 Text("min: $_formattedTime", 
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  textAlign: TextAlign.end,
                                 ),
                               ],
                             ),
