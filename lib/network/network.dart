@@ -107,7 +107,7 @@ class Network {
 
     if (response.statusCode == 200) {
       ConsultationResponse consultationResponse =
-          ConsultationResponse.fromJson(json.decode(response.body));
+      ConsultationResponse.fromJson(json.decode(response.body));
 
       if (onConsultationFetch != null) {
         onConsultationFetch(consultationResponse);
@@ -122,36 +122,37 @@ class Network {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => WaitingRoomScreen(
-              appointmentId: appointmentID,
-              isProduction: isProduction,
-              reasonForVisit: consultationResponse.data?.reasonforvisit,
-              doctorName: consultationResponse.data?.doctorName,
-              appointmentDate: consultationResponse.data?.appointmentDate,
-              appointmentTime: consultationResponse.data?.appointmentTime,
-            ),
+            builder: (context) =>
+                WaitingRoomScreen(
+                  appointmentId: appointmentID,
+                  isProduction: isProduction,
+                  reasonForVisit: consultationResponse.data?.reasonforvisit,
+                  doctorName: consultationResponse.data?.doctorName,
+                  appointmentDate: consultationResponse.data?.appointmentDate,
+                  appointmentTime: consultationResponse.data?.appointmentTime,
+                ),
           ),
         );
         // If we return from waiting room (either user left or call finished via replacement), 
         // we should exit this flow.
         return result as String? ?? 'PSDK_2';
-      }
-
+      } else {
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
           !(consultationResponse.data?.tokenId?.isEmpty ?? false) &&
           !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
         final route = MaterialPageRoute(
-          builder: (context) => CallScreen(
-            callArguments: CallArguments(
-              consultationResponse.data!.sessionId!,
-              consultationResponse.data!.tokenId!,
-              '',
-              '',
-              '40',
-              '',
-              true,
-            ),
-          ),
+          builder: (context) =>
+              CallScreen(
+                callArguments: CallArguments(
+                  consultationResponse.data!.sessionId!,
+                  consultationResponse.data!.tokenId!,
+                  '',
+                  '',
+                  '40',
+                  '',
+                  true,
+                ),
+              ),
         );
         final result = isFromWaitingRoom
             ? await Navigator.pushReplacement(context, route)
@@ -164,6 +165,7 @@ class Network {
       } else {
         return 'PSDK_E_2';
       }
+    }
     }
     if (response.statusCode == 401) {
       return 'PSDK_E_401';
