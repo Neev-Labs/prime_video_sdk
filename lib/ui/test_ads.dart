@@ -35,6 +35,8 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   int _secondsRemaining = 300; // 5:00 in seconds
   String? _patientId;
   String? _doctorImage;
+  String? _displayDate;
+  String? _displayTime;
 
   @override
   void initState() {
@@ -74,10 +76,12 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       widget.appointmentId,
       widget.isProduction,
     );
-    if (response != null && response.data?.patientId != null) {
+    if (response != null && response.data != null) {
       if (mounted) {
         setState(() {
           _patientId = response.data!.patientId;
+          _displayDate = response.data!.displayDate;
+          _displayTime = response.data!.displayTime;
         });
       }
     }
@@ -89,20 +93,31 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
     });
   }
 
+  bool _isChecking = false;
+
   Future<void> _checkConsultationStatus() async {
-    await Network().joinConsultation(
-      context,
-      widget.appointmentId,
-      widget.isProduction,
-      isFromWaitingRoom: true,
-      onConsultationFetch: (response) {
-         if (mounted && response.data?.doctorDetails?.doctorImage != null) {
-            setState(() {
-               _doctorImage = response.data!.doctorDetails!.doctorImage;
-            });
-         }
-      },
-    );
+    if (_isChecking) return;
+    _isChecking = true;
+
+    try {
+      await Network().joinConsultation(
+        context,
+        widget.appointmentId,
+        widget.isProduction,
+        isFromWaitingRoom: true,
+        onConsultationFetch: (response) {
+           if (mounted && response.data?.doctorDetails?.doctorImage != null) {
+              setState(() {
+                 _doctorImage = response.data!.doctorDetails!.doctorImage;
+              });
+           }
+        },
+      );
+    } finally {
+      if (mounted) {
+        _isChecking = false;
+      }
+    }
   }
 
   void _startTimer() {
@@ -227,7 +242,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   Widget build(BuildContext context) {
     debugPrint("WaitingRoomScreen build: ads count=${_ads.length}");
     final primaryColor = const Color(0xFF673AB7); 
-
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea( // Use SafeArea since AppBar is gone
@@ -321,7 +336,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "Scheduled: ${widget.appointmentDate ?? "12-Jan-2026"}, ${widget.appointmentTime ?? "10:05 AM"}",
+                            "Scheduled: ${_displayDate ?? widget.appointmentDate ?? "12-Jan-2026"}, ${_displayTime ?? widget.appointmentTime ?? "10:05 AM"}",
                             style: const TextStyle(color: Colors.grey),
                             textAlign: TextAlign.start,
                           ),
@@ -330,9 +345,11 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                           // Waiting Status
                           Row(
                             children: [ // Left aligned row
-                              const Text(
-                                "Waiting for the Doctor to start the meeting",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              const Expanded(
+                                child: Text(
+                                  "Waiting for the Doctor to start the meeting",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
                               ),
                                const SizedBox(width: 8),
                               SizedBox(

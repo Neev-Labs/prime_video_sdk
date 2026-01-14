@@ -177,6 +177,42 @@ class _CallScreenState extends State<CallScreen> {
         isReceiveSpokenLanguageContentEnabled.value = await zoom
             .liveTranscriptionHelper
             .isReceiveSpokenLanguageContentEnabled();
+
+        // Show Disclaimer Dialog
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "As required by Dubai Health telemedicine guidelines, this consultation’s audio will be recorded for clinical and quality purposes. By staying on this call, you agree to the recording.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text("OK", style: TextStyle(color: Colors.white)),
+                      ),
+                    )
+                  ],
+                ),
+              );
+            },
+          );
+        }
+        isRecordingStarted.value = true; // Force recording indicator
       });
 
       final sessionLeaveListener =
@@ -889,31 +925,32 @@ class _CallScreenState extends State<CallScreen> {
     Widget smallView;
     Widget recordView;
     if (isRecordingStarted.value) {
-      recordView = Container(
-        color: Colors.black,
-        height: 50,
-        padding: const EdgeInsets.all(12),
-        alignment: Alignment.bottomCenter,
-        margin: const EdgeInsets.only(bottom: 0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/icons/record.png',
-              width: 24,
-              height: 24,
+      recordView = SafeArea(
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Container(
+            margin: const EdgeInsets.only(top: 10, left: 10), // Adjust margin as needed
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF232323).withOpacity(0.8), // Dark background
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 8),
-            const Text(
-              "The audio is being recorded",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white, // optional styling
-                fontWeight: FontWeight.w500,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.circle, color: Colors.red, size: 12),
+                SizedBox(width: 8),
+                Text(
+                  "Recording in progress",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     } else {
@@ -1026,7 +1063,6 @@ class _CallScreenState extends State<CallScreen> {
       child: Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: backgroundColor,
-          body: Stack(
             children: [
               fullScreenView,
               Container(
@@ -1075,7 +1111,8 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                     ],
                   )),
-              recordView,
+              // Move recordView to top of stack to ensure it stays on top
+              if (isRecordingStarted.value) recordView, 
             ],
           )),
     );
