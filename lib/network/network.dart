@@ -57,11 +57,11 @@ class Network {
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
          return 'PSDK_E_4';
     }
-    if (checkResponse.data?.appointmentStatus == 'TODAY_UPCOMING') {
-
-      if (!isFromWaitingRoom) ProgressDialog.hide(context);
-         return 'PSDK_E_5';
-    }
+    // if (checkResponse.data?.appointmentStatus == 'TODAY_UPCOMING') {
+    //
+    //   if (!isFromWaitingRoom) ProgressDialog.hide(context);
+    //      return 'PSDK_E_5';
+    // }
 
     String? userId = checkResponse.data?.patientId;
     if (userId == null) {

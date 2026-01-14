@@ -91,6 +91,7 @@ class _CallScreenState extends State<CallScreen> {
     var userShareStatusFlag = useState(false);
     var isReceiveSpokenLanguageContentEnabled = useState(false);
     var isPiPView = useState(false);
+    var isDialogOpen = useState(false);
 
     //hide status bar
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
@@ -229,8 +230,12 @@ class _CallScreenState extends State<CallScreen> {
         fullScreenUser.value = null;
         debugPrint("Can pop: ${Navigator.canPop(context)}");
 
-        // Attempt to close any open dialogs first if necessary, or just exit the screen.
-        // Removing rootNavigator: true to ensure we pop from the correct stack used to push this screen.
+        // If the "Doctor is away" dialog is open, close it first
+        if (isDialogOpen.value) {
+           Navigator.of(context).pop(); 
+        }
+
+        // Then close the CallScreen
         if (Navigator.canPop(context)) {
           Navigator.of(context).pop(true);
         }
@@ -375,11 +380,12 @@ class _CallScreenState extends State<CallScreen> {
         users.value = remoteUsers;
       });
 
-      void showLeftDialog(BuildContext context) {
+      Future<void> showLeftDialog(BuildContext context) async {
         if(isDoctorJoined) {
           return;
         }
-        showDialog(
+        isDialogOpen.value = true;
+        await showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -402,6 +408,7 @@ class _CallScreenState extends State<CallScreen> {
             );
           },
         );
+        isDialogOpen.value = false;
       }
 
       final userLeaveListener =
@@ -1058,7 +1065,10 @@ class _CallScreenState extends State<CallScreen> {
                 child: Text("Cancel"),
               ),
               TextButton(
-                onPressed: leaveConsultation,
+                onPressed: () {
+                   Navigator.of(context).pop(true);
+                   leaveConsultation();
+                },
                 child: Text("Yes"),
               ),
             ],
