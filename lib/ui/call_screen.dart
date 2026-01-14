@@ -229,7 +229,12 @@ class _CallScreenState extends State<CallScreen> {
         fullScreenUser.value = null;
         debugPrint("Can pop: ${Navigator.canPop(context)}");
 
-        Navigator.of(context, rootNavigator: true).pop(true);
+        // Attempt to close any open dialogs first if necessary, or just exit the screen.
+        // Removing rootNavigator: true to ensure we pop from the correct stack used to push this screen.
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop(true);
+        }
+        
         await zoom.cleanup();
       });
 
