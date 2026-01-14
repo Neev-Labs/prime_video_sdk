@@ -53,15 +53,27 @@ class Network {
 
     // 2. Check appointmentStatus
     if (checkResponse.data?.appointmentStatus == 'EXPIRED') {
-
       if (!isFromWaitingRoom) ProgressDialog.hide(context);
-         return 'PSDK_E_4';
+      await _showStatusDialog(
+        context,
+        title: "Consultation Expired",
+        date: checkResponse.data?.displayDate,
+        time: checkResponse.data?.displayTime,
+        isEarly: false,
+      );
+      return 'PSDK_E_4';
     }
-    // if (checkResponse.data?.appointmentStatus == 'TODAY_UPCOMING') {
-    //
-    //   if (!isFromWaitingRoom) ProgressDialog.hide(context);
-    //      return 'PSDK_E_5';
-    // }
+    if (checkResponse.data?.appointmentStatus == 'UPCOMING') {
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      await _showStatusDialog(
+        context,
+        title: "You’re Early!",
+        date: checkResponse.data?.displayDate,
+        time: checkResponse.data?.displayTime,
+        isEarly: true,
+      );
+      return 'PSDK_E_5';
+    }
 
     String? userId = checkResponse.data?.patientId;
     if (userId == null) {
@@ -251,5 +263,86 @@ class Network {
       debugPrint("getAds error: $e");
     }
     return null;
+  }
+
+  Future<void> _showStatusDialog(
+    BuildContext context, {
+    required String title,
+    String? date,
+    String? time,
+    required bool isEarly,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF9E6), // Light yellow
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.warning_amber_rounded,
+                    color: Colors.orange, size: 32),
+              ),
+              const SizedBox(height: 16),
+              // Title
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              // Message
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: const TextStyle(
+                      color: Colors.black54, fontSize: 14, height: 1.5),
+                  children: [
+                    TextSpan(
+                        text: "This appointment " +
+                            (isEarly ? "is" : "was") +
+                            " scheduled for "),
+                    TextSpan(
+                      text: "${date ?? ''}, ${time ?? ''}.",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    TextSpan(
+                        text: isEarly
+                            ? "\nPlease wait until the scheduled time for the doctor to join."
+                            : "\nPlease contact the hospital to reschedule."),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6), // Purple
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("Ok",
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
