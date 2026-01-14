@@ -1063,6 +1063,7 @@ class _CallScreenState extends State<CallScreen> {
       child: Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: backgroundColor,
+          body: Stack(
             children: [
               fullScreenView,
               Container(
