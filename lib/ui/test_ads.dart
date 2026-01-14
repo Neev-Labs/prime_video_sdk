@@ -294,12 +294,12 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text("Estimated wait time 5",
+                                const Text("Estimated wait time",
                                   style: TextStyle(color: Colors.grey),
                                   textAlign: TextAlign.end,
                                 ),
                                 const SizedBox(height: 4),
-                                Text("min: $_formattedTime", 
+                                Text("5 min: $_formattedTime", 
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   textAlign: TextAlign.end,
                                 ),
