@@ -104,6 +104,11 @@ class _CallScreenState extends State<CallScreen> {
     useEffect(() {
       Future<void>.microtask(() async {
         try {
+          // Attempt to leave any existing session to prevent "Session Already In Progress" error
+          try {
+             await zoom.leaveSession(false);
+          } catch (_) {}
+
           Map<String, bool> SDKaudioOptions = {
             "connect": true,
             "mute": true,

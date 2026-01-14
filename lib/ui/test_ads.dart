@@ -181,7 +181,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                       child: OutlinedButton(
                         onPressed: () {
                            Navigator.of(context).pop(); // Close dialog
-                           Navigator.of(context).pop(); // Go back to previous page
+                           Navigator.of(context).pop('PSDK_2'); // Go back to previous page
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFF673AB7)),

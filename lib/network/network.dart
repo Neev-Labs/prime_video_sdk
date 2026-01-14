@@ -119,7 +119,7 @@ class Network {
         if (isFromWaitingRoom) {
           return 'WAITING';
         }
-        await Navigator.push(
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => WaitingRoomScreen(
@@ -132,6 +132,9 @@ class Network {
             ),
           ),
         );
+        // If we return from waiting room (either user left or call finished via replacement), 
+        // we should exit this flow.
+        return result as String? ?? 'PSDK_2';
       }
 
       if (!(consultationResponse.data?.sessionId?.isEmpty ?? false) &&
