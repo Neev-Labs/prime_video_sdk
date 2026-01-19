@@ -1,6 +1,6 @@
 import 'package:lottie/lottie.dart';
 import 'package:flutter/material.dart';
-import 'package:integrated_project/ui/waiting_room_ads.dart';
+import 'package:prime_video_library/ui/waiting_room_ads.dart';
 import 'dart:convert';
 import 'dart:async';
 import '../network/network.dart';

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:prime_video_library/model/consultation_model.dart';
 import 'package:prime_video_library/model/models.dart';
+import 'package:prime_video_library/ui/zoom_video_call_screen.dart';
 import 'package:prime_video_library/util/constance.dart';
 
 import '../model/consultation_response.dart';
@@ -154,17 +156,26 @@ class Network {
           !(consultationResponse.data?.appointmentDate?.isEmpty ?? false)) {
         final route = MaterialPageRoute(
           builder: (context) =>
-              CallScreen(
-                callArguments: CallArguments(
-                  consultationResponse.data!.sessionId!,
-                  consultationResponse.data!.tokenId!,
-                  '',
-                  '',
-                  '40',
-                  '',
-                  true,
-                ),
-              ),
+              ZoomVideoCallScreen(
+                  consultationModel: ConsultationModel.fromSessionIdAndToken(
+                      sessionId: consultationResponse.data!.sessionId!,
+                      patientToken: consultationResponse.data!.tokenId!,
+                      doctorName: consultationResponse.data!.doctorName,
+                      doctorImage: "",
+                      status: ""
+                  )
+              )
+              // CallScreen(
+              //   callArguments: CallArguments(
+              //     consultationResponse.data!.sessionId!,
+              //     consultationResponse.data!.tokenId!,
+              //     '',
+              //     '',
+              //     '40',
+              //     '',
+              //     true,
+              //   ),
+              // ),
         );
         final result = isFromWaitingRoom
             ? await Navigator.pushReplacement(context, route)

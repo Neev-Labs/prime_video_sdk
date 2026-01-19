@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_zoom_videosdk/flutter_zoom_view.dart' as FlutterZoomView;
 import 'package:flutter_zoom_videosdk/native/zoom_videosdk.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 const SHOW_TALKING_ICON_DURATION = 2000;
 
@@ -23,7 +24,14 @@ class VideoView extends FlutterZoomView.ZoomView  {
     required super.videoAspect,
     required super.fullScreen,
     required super.resolution,
+    this.displayUserName,
+    this.width,
+    this.height,
   });
+
+  final String? displayUserName;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -131,14 +139,13 @@ class VideoView extends FlutterZoomView.ZoomView  {
     } else {
       if (isVideoOn.value || sharing || preview) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          height: 110,
-          width: 110,
+          height: height ?? 110,
+          width: width ?? 110,
           child: Stack(
             children: [
               Container(
-                height: 110,
-                width: 110,
+                height: height ?? 110,
+                width: width ?? 110,
                 decoration: BoxDecoration(
                   color: const Color(0xff232323),
                   border: Border.all(
@@ -151,35 +158,38 @@ class VideoView extends FlutterZoomView.ZoomView  {
                 child: FlutterZoomView.View(key: Key(sharing.toString()), creationParams: creationParams),
               ),
               Container(
-                height: 110,
-                width: 110,
+                height: height ?? 110,
+                width: width ?? 110,
                 decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
               ),
+              if (!preview)
               Container(
                 alignment: Alignment.bottomCenter,
                 child: Container(
                   height: 20,
-                  width: 110,
+                  width: width ?? 110,
                   decoration: const BoxDecoration(
                     color: Colors.black26,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                 ),
               ),
+              if (!preview)
               Container(
                 alignment: Alignment.bottomLeft,
                 margin: const EdgeInsets.only(left: 5),
                 child: Text(
-                  user!.userName,
+                  displayUserName ?? user!.userName,
                   textAlign: TextAlign.left,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 12,
                   ),
                 ),
               ),
+              if (!preview)
               Container(
                 alignment: Alignment.bottomRight,
                 margin: const EdgeInsets.only(right: 5, bottom: 5),
@@ -199,14 +209,13 @@ class VideoView extends FlutterZoomView.ZoomView  {
         );
       } else {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          height: 110,
-          width: 110,
+          height: height ?? 110,
+          width: width ?? 110,
           child: Stack(
             children: [
               Container(
-                height: 110,
-                width: 110,
+                height: height ?? 110,
+                width: width ?? 110,
                 decoration: BoxDecoration(
                   color: const Color(0xff232323),
                   border: Border.all(
@@ -224,29 +233,32 @@ class VideoView extends FlutterZoomView.ZoomView  {
                       image: AssetImage("assets/icons/default-avatar.png"),
                     )),
               ),
+              if (!preview)
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
                   height: 20,
-                  width: 110,
+                  width: width ?? 110,
                   decoration: const BoxDecoration(
                     color: Colors.black26,
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                   ),
                 ),
               ),
+              if (!preview)
               Container(
                 alignment: Alignment.bottomLeft,
                 margin: const EdgeInsets.only(left: 5),
                 child: Text(
-                  user!.userName,
+                  displayUserName ?? user!.userName,
                   textAlign: TextAlign.left,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 12,
                   ),
                 ),
               ),
+              if (!preview)
               Container(
                 alignment: Alignment.bottomRight,
                 margin: const EdgeInsets.only(right: 5, bottom: 5),
