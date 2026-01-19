@@ -18,6 +18,29 @@ import 'package:permission_handler/permission_handler.dart';
 
 class Network {
 
+  static String getErrorMessage(String code) {
+    switch (code) {
+      case 'PSDK_1':
+        return 'Consultation completed';
+      case 'PSDK_2':
+        return 'Patient left from consultation screen';
+      case 'PSDK_E_1':
+        return 'Unable to connect to the session';
+      case 'PSDK_E_2':
+        return 'Appointment ID is not available';
+      case 'PSDK_E_3':
+        return 'Camera or Audio permission denied';
+      case 'PSDK_E_401':
+        return 'Getting 401 from connect2mydoctor api';
+      case 'PSDK_E_500':
+        return 'Getting 500 from connect2mydoctor api';
+      case 'PSDK_E_408':
+        return 'Getting timeout from connect2mydoctor api';
+      default:
+        return 'Unknown Error';
+    }
+  }
+
   Future<bool> checkCameraPermission() async {
     var cameraStatus = await Permission.camera.status;
     var microphoneStatus = await Permission.microphone.status;

@@ -488,13 +488,13 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.deepPurple),
+                              side: BorderSide(color: Colors.blue),
                               padding: EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12))),
                           child: Text("Wait",
                               style: GoogleFonts.poppins(
-                                  color: Colors.deepPurple,
+                                  color: Colors.blue,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500)),
                         ),
@@ -513,7 +513,7 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                             // The BottomSheet is attached to the screen. It should be fine.
                           },
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: Colors.blue,
                               padding: EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12))),
@@ -574,13 +574,13 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(ctx, false),
                         style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.deepPurple),
+                            side: BorderSide(color: Colors.blue),
                             padding: EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12))),
                         child: Text("No",
                             style: GoogleFonts.poppins(
-                                color: Colors.deepPurple,
+                                color: Colors.blue,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500)),
                       ),
@@ -597,7 +597,7 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                           Navigator.pop(ctx, true);
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
+                            backgroundColor: Colors.blue,
                             padding: EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12))),
