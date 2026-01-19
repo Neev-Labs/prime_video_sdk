@@ -219,8 +219,13 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
 
     _listeners.add(_eventListener.addListener(EventType.onSessionLeave, (data) {
       print("Session Left");
-      _consultationEndFlag = true;
-      _endCallProperly();
+      if (!_consultationEndFlag) {
+        // Doctor ended the session
+        _endCallProperly("PSDK_1");
+      } else {
+        // User left manually or cleanup
+        _endCallProperly();
+      }
     }));
 
     _listeners.add(_eventListener.addListener(EventType.onUserJoin, (data) {
@@ -440,11 +445,11 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
     }
   }
 
-  void _endCallProperly() {
+  void _endCallProperly([dynamic result]) {
     _consultationEndFlag = true;
     _zoomVideoSdk.leaveSession(false);
     WakelockPlus.disable();
-    Navigator.of(context).pop(); // Exit screen
+    Navigator.of(context).pop(result); // Exit screen
   }
 
   void _showSteppedAwayAlert() {
@@ -937,7 +942,7 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                       _zoomVideoSdk.audioHelper.muteAudio(_mySelf!.userId);
                   },
                   child: Icon(_isAudioOn ? Icons.mic : Icons.mic_off,
-                      color: Colors.purple),
+                      color: Colors.blue),
                 ),
                 SizedBox(width: 30),
 
@@ -955,7 +960,7 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                     }
                   },
                   child: Icon(_isVideoOn ? Icons.videocam : Icons.videocam_off,
-                      color: Colors.purple),
+                      color: Colors.blue),
                 ),
                 SizedBox(width: 30),
 
@@ -988,7 +993,7 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                       ),
                     );
                   },
-                  child: Icon(Icons.cameraswitch, color: Colors.purple),
+                  child: Icon(Icons.cameraswitch, color: Colors.blue),
                 ),
               ],
             ),
