@@ -55,9 +55,6 @@ class Network {
     if (!permission) {
       return 'PSDK_E_3';
     }
-    // if (isProduction) {
-    //   return 'Production not configured';
-    // }
     if (!isFromWaitingRoom) {
       ProgressDialog.show(context);
     }
