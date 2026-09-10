@@ -365,7 +365,12 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                               SizedBox(
                                 height: 50,
                                 width: 50,
-                                child: Lottie.asset('assets/animations/loader.json'),
+                                child: Lottie.asset(
+                                  'assets/animations/loader.json',
+                                  package: 'prime_video_library',
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const SizedBox.shrink(),
+                                ),
                               ),
                             ],
                           ),

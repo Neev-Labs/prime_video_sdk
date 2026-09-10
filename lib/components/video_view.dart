@@ -84,11 +84,11 @@ class VideoView extends FlutterZoomView.ZoomView  {
     ImageIcon audioStatusIcon;
     if (isTalking.value) {
       audioStatusIcon = const ImageIcon(
-        AssetImage("assets/icons/talking@2x.png"),
+        AssetImage("assets/icons/talking@2x.png", package: 'prime_video_library'),
       );
     } else if (isMuted.value) {
       audioStatusIcon = const ImageIcon(
-        AssetImage("assets/icons/muted@2x.png"),
+        AssetImage("assets/icons/muted@2x.png", package: 'prime_video_library'),
       );
     }
     // Pass parameters to the platform side.
@@ -132,7 +132,7 @@ class VideoView extends FlutterZoomView.ZoomView  {
           child: Container(
               alignment: Alignment.center,
               child: const Image(
-                image: AssetImage("assets/icons/default-avatar.png"),
+                image: AssetImage("assets/icons/default-avatar.png", package: 'prime_video_library'),
               )),
         );
       }
@@ -199,8 +199,8 @@ class VideoView extends FlutterZoomView.ZoomView  {
                   height: 12,
                   width: 12,
                   image: isMuted.value
-                      ? const AssetImage("assets/icons/muted@2x.png")
-                      : const AssetImage("assets/icons/talking@2x.png"),
+                      ? const AssetImage("assets/icons/muted@2x.png", package: 'prime_video_library')
+                      : const AssetImage("assets/icons/talking@2x.png", package: 'prime_video_library'),
                   fit: BoxFit.cover,
                 ),
               )
@@ -230,7 +230,7 @@ class VideoView extends FlutterZoomView.ZoomView  {
                     child: const Image(
                       height: 60,
                       width: 60,
-                      image: AssetImage("assets/icons/default-avatar.png"),
+                      image: AssetImage("assets/icons/default-avatar.png", package: 'prime_video_library'),
                     )),
               ),
               if (!preview)
@@ -266,8 +266,8 @@ class VideoView extends FlutterZoomView.ZoomView  {
                   height: 12,
                   width: 12,
                   image: isMuted.value
-                      ? const AssetImage("assets/icons/muted@2x.png")
-                      : const AssetImage("assets/icons/talking@2x.png"),
+                      ? const AssetImage("assets/icons/muted@2x.png", package: 'prime_video_library')
+                      : const AssetImage("assets/icons/talking@2x.png", package: 'prime_video_library'),
                   fit: BoxFit.cover,
                 ),
               ),

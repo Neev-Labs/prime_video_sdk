@@ -1102,8 +1102,8 @@ class _CallScreenState extends State<CallScreen> {
                                   onPressed: onPressAudio,
                                   icon: isMuted.value
                                       ? Image.asset(
-                                      "assets/icons/unmute@2x.png")
-                                      : Image.asset("assets/icons/mute@2x.png"),
+                                      "assets/icons/unmute@2x.png", package: 'prime_video_library')
+                                      : Image.asset("assets/icons/mute@2x.png", package: 'prime_video_library'),
                                   iconSize: circleButtonSize,
                                   tooltip:
                                   isMuted.value == true ? "Unmute" : "Mute",
@@ -1113,13 +1113,13 @@ class _CallScreenState extends State<CallScreen> {
                                   iconSize: circleButtonSize,
                                   icon: isVideoOn.value
                                       ? Image.asset(
-                                      "assets/icons/video-off@2x.png")
+                                      "assets/icons/video-off@2x.png", package: 'prime_video_library')
                                       : Image.asset(
-                                      "assets/icons/video-on@2x.png"),
+                                      "assets/icons/video-on@2x.png", package: 'prime_video_library'),
                                 ),
                                 IconButton(
                                   onPressed: onPressCameraList,
-                                  icon: Image.asset("assets/icons/more@2x.png"),
+                                  icon: Image.asset("assets/icons/more@2x.png", package: 'prime_video_library'),
                                   iconSize: circleButtonSize,
                                 ),
                               ],

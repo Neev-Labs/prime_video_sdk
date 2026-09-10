@@ -768,12 +768,14 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                             errorBuilder: (context, error, stackTrace) {
                               return Image.asset(
                                 "assets/icons/default-avatar.png",
+                                package: 'prime_video_library',
                                 fit: BoxFit.cover,
                               );
                             },
                           )
                         : Image.asset(
                             "assets/icons/default-avatar.png",
+                            package: 'prime_video_library',
                             fit: BoxFit.cover,
                           ),
                   ),
@@ -836,7 +838,10 @@ class _ZoomVideoCallScreenState extends State<ZoomVideoCallScreen>
                       height: 50,
                       child: Lottie.asset(
                         'assets/animations/loader.json',
+                        package: 'prime_video_library',
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
                       ),
                     ),
                     SizedBox(width: 10),
