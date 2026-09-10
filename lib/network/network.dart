@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -103,7 +104,14 @@ class Network {
        return 'PSDK_E_6';
     }
 
-    DataModel dataModel = await DataModel.create();
+    DataModel dataModel;
+    try {
+      dataModel = await DataModel.create();
+    } catch (e) {
+      debugPrint('DataModel.create error: $e');
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      return 'PSDK_E_500';
+    }
     
     final baseUrl = isProduction
         ? Constants.PRODUCTIONendPoint
@@ -127,11 +135,24 @@ class Network {
     debugPrint('API Request: $url');
     debugPrint('Request Body: ${json.encode(requestBody)}');
 
-    final response = await http.post(Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json.encode(requestBody));
+    final http.Response response;
+    try {
+      response = await http
+          .post(Uri.parse(url),
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+              },
+              body: json.encode(requestBody))
+          .timeout(const Duration(seconds: 30));
+    } on TimeoutException catch (e) {
+      debugPrint('consultation request timed out: $e');
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      return 'PSDK_E_408';
+    } catch (e) {
+      debugPrint('consultation request error: $e');
+      if (!isFromWaitingRoom) ProgressDialog.hide(context);
+      return 'PSDK_E_500';
+    }
 
     if (!isFromWaitingRoom) {
       ProgressDialog.hide(context);
@@ -140,8 +161,15 @@ class Network {
     debugPrint('API Response [${response.statusCode}]: ${response.body}');
 
     if (response.statusCode == 200) {
-      ConsultationResponse consultationResponse =
-      ConsultationResponse.fromJson(json.decode(response.body));
+      final ConsultationResponse consultationResponse;
+      try {
+        consultationResponse =
+            ConsultationResponse.fromJson(json.decode(response.body));
+      } catch (e) {
+        debugPrint('consultation response parse error: $e');
+        if (!isFromWaitingRoom) ProgressDialog.hide(context);
+        return 'PSDK_E_500';
+      }
 
       if (onConsultationFetch != null) {
         onConsultationFetch(consultationResponse);

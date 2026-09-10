@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 
 class ProgressDialog {
+  // Context of the dialog route itself, so hide() pops exactly that route and
+  // never a page belonging to the host app.
+  static BuildContext? _dialogContext;
+
   static void show(BuildContext context) {
+    if (_dialogContext != null) return; // already showing
     showDialog(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false, // Prevents closing on tap
-      builder: (context) {
-        return AlertDialog(
+      builder: (dialogContext) {
+        _dialogContext = dialogContext;
+        return const AlertDialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
           content: Center(
@@ -14,12 +21,13 @@ class ProgressDialog {
           ),
         );
       },
-    );
+    ).then((_) => _dialogContext = null);
   }
 
   static void hide(BuildContext context) {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    final dialogContext = _dialogContext;
+    _dialogContext = null;
+    if (dialogContext == null || !dialogContext.mounted) return;
+    Navigator.of(dialogContext).pop();
   }
 }
